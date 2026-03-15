@@ -93,7 +93,10 @@ export default function LoanDetail() {
         <div class="row"><span>Saldo Pendiente:</span><strong>RD$ ${payment.remaining_balance?.toFixed(2)}</strong></div>
         ${payment.notes ? `<div class="row"><span>Notas:</span><span>${payment.notes}</span></div>` : ''}
         <div class="total">✓ Pago Recibido: RD$ ${payment.amount?.toFixed(2)}</div>
-        <div class="footer">Inversiones CTEC — Gracias por su pago</div>
+        <div class="footer">
+          Inversiones CTEC — Gracias por su pago<br/>
+          Contacto WhatsApp: 809-462-2260
+        </div>
       </body></html>
     `;
     const win = window.open('', '_blank');
