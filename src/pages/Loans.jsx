@@ -144,6 +144,22 @@ export default function Loans() {
           </div>
         </div>
       )}
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent className="bg-[#111827] border-[#1e293b] text-gray-200">
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar préstamo?</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-500">
+              Se eliminará el préstamo de <strong className="text-gray-300">{deletingLoan?.client_name}</strong> junto con todo su historial de pagos. Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-[#1e293b] text-gray-400 hover:bg-white/5">Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => deleteMutation.mutate(deletingLoan)} className="bg-red-600 hover:bg-red-700" disabled={deleteMutation.isPending}>
+              {deleteMutation.isPending ? 'Eliminando...' : 'Eliminar'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
