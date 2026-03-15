@@ -173,7 +173,7 @@ export default function NewLoan() {
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Loan.create(data),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['loans'] });
       toast.success('Préstamo creado exitosamente');
       navigate('/Loans');
