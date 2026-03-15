@@ -117,8 +117,7 @@ function generateLoanPDF(loanData, client, calc, fmt) {
 
       <div class="footer">
         <strong>INVERSIONES CTEC</strong> — República Dominicana<br/>
-        Este documento constituye un contrato de préstamo legalmente vinculante.<br/>
-        Contacto WhatsApp: 809-462-2260
+        Este documento constituye un contrato de préstamo legalmente vinculante.
       </div>
     </body></html>
   `;
