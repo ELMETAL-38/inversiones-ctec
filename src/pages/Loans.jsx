@@ -21,10 +21,29 @@ const STATUS_TEXT = { active: 'Activo', paid: 'Pagado', overdue: 'Vencido', defa
 export default function Loans() {
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState('all');
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deletingLoan, setDeletingLoan] = useState(null);
+
+  const queryClient = useQueryClient();
 
   const { data: loans = [], isLoading } = useQuery({
     queryKey: ['loans'],
     queryFn: () => base44.entities.Loan.list('-created_date', 200),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (loan) => {
+      await base44.entities.Loan.delete(loan.id);
+      // Also delete related payments
+      const payments = await base44.entities.Payment.filter({ loan_id: loan.id });
+      await Promise.all(payments.map(p => base44.entities.Payment.delete(p.id)));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['loans'] });
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+      setDeleteOpen(false);
+      toast.success('Préstamo eliminado');
+    },
   });
 
   const today = new Date().toISOString().split('T')[0];
