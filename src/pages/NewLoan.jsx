@@ -327,8 +327,21 @@ export default function NewLoan() {
           </div>
         )}
 
-        <div className="flex justify-end gap-3 pt-2">
+        <div className="flex flex-wrap justify-end gap-3 pt-2">
           <Button type="button" variant="outline" onClick={() => navigate('/Loans')} className="border-[#1e293b] text-gray-400 hover:bg-white/5">Cancelar</Button>
+          {calc && form.client_id && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                const client = clients.find(c => c.id === form.client_id);
+                generateLoanPDF({ form }, client, calc, fmt);
+              }}
+              className="border-[#d4a533]/40 text-[#d4a533] hover:bg-[#d4a533]/10"
+            >
+              <FileDown className="w-4 h-4 mr-2" /> Vista Previa PDF
+            </Button>
+          )}
           <Button type="submit" disabled={!calc || !form.client_id || createMutation.isPending} className="bg-[#d4a533] hover:bg-[#b8922d] text-black font-semibold">
             Crear Préstamo
           </Button>
