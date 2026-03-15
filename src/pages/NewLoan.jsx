@@ -7,8 +7,126 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { addDays, addWeeks, addMonths, format } from 'date-fns';
-import { Calculator, ArrowLeft } from 'lucide-react';
+import { Calculator, ArrowLeft, FileDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
+
+const LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/user_69b62672be45da00af3df17b/0d96f8146_LogodeinversionesCTEC.png";
+
+function generateLoanPDF(loanData, client, calc, fmt) {
+  const { form } = loanData;
+  const scheduleRows = calc.schedule.map(s => `
+    <tr>
+      <td style="padding:6px 8px;border-bottom:1px solid #f0f0f0;text-align:center;">${s.installment_number}</td>
+      <td style="padding:6px 8px;border-bottom:1px solid #f0f0f0;text-align:center;">${s.due_date}</td>
+      <td style="padding:6px 8px;border-bottom:1px solid #f0f0f0;text-align:right;">RD$ ${s.amount.toFixed(2)}</td>
+    </tr>
+  `).join('');
+
+  const html = `
+    <html><head>
+    <meta charset="UTF-8">
+    <style>
+      * { margin:0; padding:0; box-sizing:border-box; }
+      body { font-family: Arial, sans-serif; color: #1a1a1a; background: #fff; padding: 30px; font-size: 13px; }
+      .header { display:flex; align-items:center; gap:16px; border-bottom: 3px solid #d4a533; padding-bottom: 16px; margin-bottom: 20px; }
+      .logo { width:70px; height:70px; object-fit:contain; }
+      .company h1 { color:#d4a533; font-size:22px; font-weight:bold; letter-spacing:1px; }
+      .company p { color:#555; font-size:11px; margin-top:2px; }
+      .doc-title { text-align:center; font-size:16px; font-weight:bold; color:#333; background:#f9f5ec; padding:10px; border-radius:6px; margin-bottom:20px; border:1px solid #e8d89a; }
+      .section { margin-bottom:20px; }
+      .section-title { font-size:12px; font-weight:bold; color:#d4a533; text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid #e8d89a; padding-bottom:4px; margin-bottom:10px; }
+      .info-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+      .info-item { display:flex; justify-content:space-between; padding:6px 10px; background:#f9f9f9; border-radius:4px; }
+      .info-item span:first-child { color:#666; }
+      .info-item span:last-child { font-weight:600; color:#1a1a1a; }
+      .totals-box { background:linear-gradient(135deg, #fffbf0, #fff8e6); border:2px solid #d4a533; border-radius:8px; padding:16px; margin-bottom:20px; }
+      .totals-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; text-align:center; }
+      .total-item p:first-child { color:#888; font-size:11px; }
+      .total-item p:last-child { font-size:17px; font-weight:bold; margin-top:3px; }
+      .gold { color:#d4a533; }
+      .green { color:#10b981; }
+      .blue { color:#3b82f6; }
+      table { width:100%; border-collapse:collapse; font-size:12px; }
+      thead tr { background:#d4a533; color:#fff; }
+      thead th { padding:8px; text-align:center; }
+      tbody tr:nth-child(even) { background:#fafafa; }
+      .footer { text-align:center; margin-top:24px; padding-top:14px; border-top:2px solid #d4a533; color:#888; font-size:11px; }
+      .footer strong { color:#d4a533; }
+      .signature-area { display:grid; grid-template-columns:1fr 1fr; gap:40px; margin-top:30px; }
+      .sig-box { text-align:center; border-top:1px solid #999; padding-top:6px; color:#555; font-size:11px; }
+    </style>
+    </head><body>
+      <div class="header">
+        <img src="${LOGO_URL}" class="logo" />
+        <div class="company">
+          <h1>INVERSIONES CTEC</h1>
+          <p>Servicios Financieros · República Dominicana</p>
+        </div>
+        <div style="margin-left:auto;text-align:right;font-size:11px;color:#888;">
+          <p>Fecha: ${new Date().toLocaleDateString('es-DO')}</p>
+          <p>Contrato de Préstamo</p>
+        </div>
+      </div>
+
+      <div class="doc-title">📄 CONTRATO DE PRÉSTAMO</div>
+
+      <div class="section">
+        <div class="section-title">Datos del Cliente</div>
+        <div class="info-grid">
+          <div class="info-item"><span>Nombre:</span><span>${client?.first_name} ${client?.last_name}</span></div>
+          <div class="info-item"><span>Cédula / ID:</span><span>${client?.id_number || '—'}</span></div>
+          <div class="info-item"><span>Teléfono:</span><span>${client?.phone || '—'}</span></div>
+          <div class="info-item"><span>Dirección:</span><span>${client?.address || '—'}</span></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Condiciones del Préstamo</div>
+        <div class="info-grid">
+          <div class="info-item"><span>Monto Prestado:</span><span>${fmt(parseFloat(form.amount))}</span></div>
+          <div class="info-item"><span>Tasa de Interés:</span><span>${form.interest_rate}% ${INTEREST_LABELS[form.interest_type]}</span></div>
+          <div class="info-item"><span>Número de Cuotas:</span><span>${form.num_installments}</span></div>
+          <div class="info-item"><span>Valor por Cuota:</span><span>${fmt(calc.installmentAmount)}</span></div>
+          <div class="info-item"><span>Fecha de Inicio:</span><span>${form.start_date}</span></div>
+          <div class="info-item"><span>Fecha de Vencimiento:</span><span>${calc.dueDate}</span></div>
+          <div class="info-item"><span>Interés por Mora:</span><span>${form.late_interest}%</span></div>
+          <div class="info-item"><span>Días de Gracia:</span><span>${form.grace_days} días</span></div>
+        </div>
+      </div>
+
+      <div class="totals-box">
+        <div class="totals-grid">
+          <div class="total-item"><p>Capital</p><p class="blue">${fmt(parseFloat(form.amount))}</p></div>
+          <div class="total-item"><p>Interés Total</p><p class="gold">${fmt(calc.totalInterest)}</p></div>
+          <div class="total-item"><p>TOTAL A PAGAR</p><p class="green">${fmt(calc.totalToPay)}</p></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Calendario de Pagos</div>
+        <table>
+          <thead><tr><th>#</th><th>Fecha de Vencimiento</th><th>Monto</th></tr></thead>
+          <tbody>${scheduleRows}</tbody>
+        </table>
+      </div>
+
+      <div class="signature-area">
+        <div class="sig-box">Firma del Prestatario<br/>${client?.first_name} ${client?.last_name}</div>
+        <div class="sig-box">Firma Inversiones CTEC<br/>Autorizado</div>
+      </div>
+
+      <div class="footer">
+        <strong>INVERSIONES CTEC</strong> — República Dominicana<br/>
+        Este documento constituye un contrato de préstamo legalmente vinculante.
+      </div>
+    </body></html>
+  `;
+
+  const win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
+  win.onload = () => win.print();
+}
 
 const INTEREST_LABELS = { daily: 'Diario', weekly: 'Semanal', biweekly: 'Quincenal', monthly: 'Mensual' };
 
