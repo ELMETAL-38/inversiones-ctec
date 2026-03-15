@@ -1,0 +1,124 @@
+import React, { useState } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
+import { Plus, Search, Eye, HandCoins } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { format } from 'date-fns';
+
+const STATUS_LABELS = { all: 'Todos', active: 'Activos', paid: 'Pagados', overdue: 'Vencidos' };
+const STATUS_COLORS = {
+  active: 'bg-emerald-500/10 text-emerald-400',
+  paid: 'bg-blue-500/10 text-blue-400',
+  overdue: 'bg-red-500/10 text-red-400',
+  defaulted: 'bg-orange-500/10 text-orange-400',
+};
+const STATUS_TEXT = { active: 'Activo', paid: 'Pagado', overdue: 'Vencido', defaulted: 'Moroso' };
+
+export default function Loans() {
+  const [search, setSearch] = useState('');
+  const [tab, setTab] = useState('all');
+
+  const { data: loans = [], isLoading } = useQuery({
+    queryKey: ['loans'],
+    queryFn: () => base44.entities.Loan.list('-created_date', 200),
+  });
+
+  const today = new Date().toISOString().split('T')[0];
+  const filtered = loans.filter(l => {
+    const q = search.toLowerCase();
+    const matchSearch = !q || (l.client_name || '').toLowerCase().includes(q);
+    let effectiveStatus = l.status;
+    if (effectiveStatus === 'active' && l.due_date && l.due_date < today) effectiveStatus = 'overdue';
+    const matchTab = tab === 'all' || effectiveStatus === tab;
+    return matchSearch && matchTab;
+  });
+
+  const fmt = (n) => new Intl.NumberFormat('es-DO', { style: 'currency', currency: 'DOP' }).format(n || 0);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-100">Préstamos</h1>
+          <p className="text-sm text-gray-500 mt-1">{loans.length} préstamos totales</p>
+        </div>
+        <Link to="/NewLoan">
+          <Button className="bg-[#d4a533] hover:bg-[#b8922d] text-black font-semibold">
+            <Plus className="w-4 h-4 mr-2" /> Nuevo Préstamo
+          </Button>
+        </Link>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+          <Input placeholder="Buscar por cliente..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10 bg-[#111827] border-[#1e293b] text-gray-200 placeholder:text-gray-600" />
+        </div>
+        <Tabs value={tab} onValueChange={setTab}>
+          <TabsList className="bg-[#111827] border border-[#1e293b]">
+            {Object.entries(STATUS_LABELS).map(([k, v]) => (
+              <TabsTrigger key={k} value={k} className="text-xs data-[state=active]:bg-[#d4a533]/15 data-[state=active]:text-[#d4a533]">{v}</TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+      </div>
+
+      {isLoading ? (
+        <div className="flex justify-center py-12">
+          <div className="w-8 h-8 border-4 border-[#d4a533]/30 border-t-[#d4a533] rounded-full animate-spin" />
+        </div>
+      ) : (
+        <div className="bg-[#111827] rounded-xl border border-[#1e293b] overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-gray-500 text-xs border-b border-[#1e293b]">
+                  <th className="text-left p-3 font-medium">Cliente</th>
+                  <th className="text-right p-3 font-medium">Monto</th>
+                  <th className="text-right p-3 font-medium">Total</th>
+                  <th className="text-right p-3 font-medium">Pagado</th>
+                  <th className="text-right p-3 font-medium">Saldo</th>
+                  <th className="text-center p-3 font-medium">Cuotas</th>
+                  <th className="text-center p-3 font-medium">Estado</th>
+                  <th className="text-center p-3 font-medium">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(l => {
+                  let status = l.status;
+                  if (status === 'active' && l.due_date && l.due_date < today) status = 'overdue';
+                  return (
+                    <tr key={l.id} className="border-b border-[#1e293b]/50 hover:bg-white/[0.02]">
+                      <td className="p-3 font-medium text-gray-200">{l.client_name || '—'}</td>
+                      <td className="p-3 text-right text-gray-300">{fmt(l.amount)}</td>
+                      <td className="p-3 text-right text-gray-300">{fmt(l.total_to_pay)}</td>
+                      <td className="p-3 text-right text-emerald-400">{fmt(l.total_paid)}</td>
+                      <td className="p-3 text-right text-[#d4a533]">{fmt(l.remaining_balance)}</td>
+                      <td className="p-3 text-center text-gray-400">{l.num_installments}</td>
+                      <td className="p-3 text-center">
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[status]}`}>
+                          {STATUS_TEXT[status]}
+                        </span>
+                      </td>
+                      <td className="p-3 text-center">
+                        <Link to={`/LoanDetail?id=${l.id}`} className="inline-flex items-center gap-1 text-xs text-[#d4a533] hover:underline">
+                          <Eye className="w-3.5 h-3.5" /> Ver
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {filtered.length === 0 && (
+                  <tr><td colSpan={8} className="text-center py-12 text-gray-600">No hay préstamos</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
