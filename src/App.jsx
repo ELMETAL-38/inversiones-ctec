@@ -15,6 +15,7 @@ import LoanDetail from '@/pages/LoanDetail';
 import Payments from '@/pages/Payments';
 import Reports from '@/pages/Reports';
 import Alerts from '@/pages/Alerts';
+import Caja from '@/pages/Caja';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -48,6 +49,7 @@ const AuthenticatedApp = () => {
         <Route path="/Payments" element={<Payments />} />
         <Route path="/Reports" element={<Reports />} />
         <Route path="/Alerts" element={<Alerts />} />
+        <Route path="/Caja" element={<Caja />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

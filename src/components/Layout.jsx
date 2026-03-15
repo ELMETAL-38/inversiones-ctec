@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, Users, HandCoins, FileText, BarChart3, 
-  Bell, Menu, X, ChevronRight, LogOut
+  Bell, Menu, X, ChevronRight, LogOut, Wallet
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
@@ -15,6 +15,7 @@ const navItems = [
   { path: '/Payments', icon: FileText, label: 'Pagos' },
   { path: '/Reports', icon: BarChart3, label: 'Reportes' },
   { path: '/Alerts', icon: Bell, label: 'Alertas' },
+  { path: '/Caja', icon: Wallet, label: 'Caja' },
 ];
 
 export default function Layout() {
