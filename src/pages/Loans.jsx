@@ -124,9 +124,14 @@ export default function Loans() {
                         </span>
                       </td>
                       <td className="p-3 text-center">
-                        <Link to={`/LoanDetail?id=${l.id}`} className="inline-flex items-center gap-1 text-xs text-[#d4a533] hover:underline">
-                          <Eye className="w-3.5 h-3.5" /> Ver
-                        </Link>
+                        <div className="flex items-center justify-center gap-2">
+                          <Link to={`/LoanDetail?id=${l.id}`} className="inline-flex items-center gap-1 text-xs text-[#d4a533] hover:underline">
+                            <Eye className="w-3.5 h-3.5" /> Ver
+                          </Link>
+                          <button onClick={() => { setDeletingLoan(l); setDeleteOpen(true); }} className="text-gray-600 hover:text-red-400 transition-colors p-1">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
