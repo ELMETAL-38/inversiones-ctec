@@ -23,38 +23,54 @@ export default function Payments() {
 
   const fmt = (n) => new Intl.NumberFormat('es-DO', { style: 'currency', currency: 'DOP' }).format(n || 0);
 
+  const getReceiptHtml = (p) => `
+    <html><head><style>
+      body { font-family: Arial; max-width: 400px; margin: auto; padding: 20px; background: #fff; }
+      .header { text-align: center; border-bottom: 2px solid #d4a533; padding-bottom: 15px; }
+      .logo { width: 80px; height: 80px; }
+      h1 { color: #d4a533; margin: 5px 0; font-size: 18px; }
+      .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+      .total { font-size: 20px; font-weight: bold; color: #10b981; text-align: center; margin-top: 15px; }
+      .footer { text-align: center; margin-top: 20px; font-size: 11px; color: #999; }
+    </style></head><body>
+      <div class="header">
+        <img src="${LOGO_URL}" class="logo" crossorigin="anonymous" />
+        <h1>INVERSIONES CTEC</h1>
+        <p style="font-size:12px;color:#666;">Recibo de Pago</p>
+      </div>
+      <div class="row"><span>Cliente:</span><strong>${p.client_name || ''}</strong></div>
+      <div class="row"><span>Fecha:</span><strong>${p.payment_date}</strong></div>
+      <div class="row"><span>Monto Pagado:</span><strong>RD$ ${p.amount?.toFixed(2)}</strong></div>
+      <div class="row"><span>Saldo Pendiente:</span><strong>RD$ ${(p.remaining_balance || 0).toFixed(2)}</strong></div>
+      ${p.notes ? `<div class="row"><span>Notas:</span><span>${p.notes}</span></div>` : ''}
+      <div class="total">✓ Pago Recibido: RD$ ${p.amount?.toFixed(2)}</div>
+      <div class="footer">
+        Inversiones CTEC — Gracias por su pago<br/>
+        Contacto WhatsApp: 809-462-2260
+      </div>
+    </body></html>
+  `;
+
   const generateReceipt = (p) => {
-    const receiptHtml = `
-      <html><head><style>
-        body { font-family: Arial; max-width: 400px; margin: auto; padding: 20px; }
-        .header { text-align: center; border-bottom: 2px solid #d4a533; padding-bottom: 15px; }
-        .logo { width: 80px; height: 80px; }
-        h1 { color: #d4a533; margin: 5px 0; font-size: 18px; }
-        .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
-        .total { font-size: 20px; font-weight: bold; color: #10b981; text-align: center; margin-top: 15px; }
-        .footer { text-align: center; margin-top: 20px; font-size: 11px; color: #999; }
-      </style></head><body>
-        <div class="header">
-          <img src="${LOGO_URL}" class="logo" />
-          <h1>INVERSIONES CTEC</h1>
-          <p style="font-size:12px;color:#666;">Recibo de Pago</p>
-        </div>
-        <div class="row"><span>Cliente:</span><strong>${p.client_name || ''}</strong></div>
-        <div class="row"><span>Fecha:</span><strong>${p.payment_date}</strong></div>
-        <div class="row"><span>Monto Pagado:</span><strong>RD$ ${p.amount?.toFixed(2)}</strong></div>
-        <div class="row"><span>Saldo Pendiente:</span><strong>RD$ ${(p.remaining_balance || 0).toFixed(2)}</strong></div>
-        ${p.notes ? `<div class="row"><span>Notas:</span><span>${p.notes}</span></div>` : ''}
-        <div class="total">✓ Pago Recibido: RD$ ${p.amount?.toFixed(2)}</div>
-        <div class="footer">
-          Inversiones CTEC — Gracias por su pago<br/>
-          Contacto WhatsApp: 809-462-2260
-        </div>
-      </body></html>
-    `;
     const win = window.open('', '_blank');
-    win.document.write(receiptHtml);
+    win.document.write(getReceiptHtml(p));
     win.document.close();
     win.print();
+  };
+
+  const downloadReceiptImage = (p) => {
+    const win = window.open('', '_blank');
+    win.document.write(getReceiptHtml(p));
+    win.document.close();
+    win.onload = () => {
+      html2canvas(win.document.body, { scale: 2, useCORS: true, backgroundColor: '#ffffff' }).then(canvas => {
+        const link = win.document.createElement('a');
+        link.download = `recibo-${p.payment_date}-${(p.client_name || 'pago').replace(/ /g, '_')}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        win.close();
+      });
+    };
   };
 
   return (
