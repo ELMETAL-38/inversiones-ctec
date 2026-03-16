@@ -7,8 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { addDays, addWeeks, addMonths, format } from 'date-fns';
-import { Calculator, ArrowLeft, FileDown, Image } from 'lucide-react';
-import html2canvas from 'html2canvas';
+import { Calculator, ArrowLeft, FileDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/user_69b62672be45da00af3df17b/0d96f8146_LogodeinversionesCTEC.png";
@@ -341,90 +340,6 @@ export default function NewLoan() {
               className="border-[#d4a533]/40 text-[#d4a533] hover:bg-[#d4a533]/10"
             >
               <FileDown className="w-4 h-4 mr-2" /> Vista Previa PDF
-            </Button>
-          )}
-          {calc && form.client_id && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                const client = clients.find(c => c.id === form.client_id);
-                const win = window.open('', '_blank');
-                win.document.write(`<!DOCTYPE html><html><head><style>
-                  * { margin:0; padding:0; box-sizing:border-box; }
-                  body { font-family: Arial, sans-serif; color: #1a1a1a; background: #fff; padding: 30px; font-size: 13px; }
-                  .header { display:flex; align-items:center; gap:16px; border-bottom: 3px solid #d4a533; padding-bottom: 16px; margin-bottom: 20px; }
-                  .logo { width:70px; height:70px; object-fit:contain; }
-                  .company h1 { color:#d4a533; font-size:22px; font-weight:bold; }
-                  .company p { color:#555; font-size:11px; }
-                  .doc-title { text-align:center; font-size:16px; font-weight:bold; color:#333; background:#f9f5ec; padding:10px; border-radius:6px; margin-bottom:20px; border:1px solid #e8d89a; }
-                  .section-title { font-size:12px; font-weight:bold; color:#d4a533; text-transform:uppercase; border-bottom:1px solid #e8d89a; padding-bottom:4px; margin-bottom:10px; margin-top:16px; }
-                  .info-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-                  .info-item { display:flex; justify-content:space-between; padding:6px 10px; background:#f9f9f9; border-radius:4px; }
-                  .totals-box { background:#fffbf0; border:2px solid #d4a533; border-radius:8px; padding:16px; margin:16px 0; display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; text-align:center; }
-                  .total-item p:first-child { color:#888; font-size:11px; }
-                  .total-item p:last-child { font-size:17px; font-weight:bold; margin-top:3px; }
-                  table { width:100%; border-collapse:collapse; font-size:12px; margin-top:8px; }
-                  thead tr { background:#d4a533; color:#fff; }
-                  thead th { padding:8px; }
-                  tbody tr:nth-child(even) { background:#fafafa; }
-                  td { padding:6px 8px; border-bottom:1px solid #f0f0f0; text-align:center; }
-                  .footer { text-align:center; margin-top:24px; padding-top:14px; border-top:2px solid #d4a533; color:#888; font-size:11px; }
-                  .footer strong { color:#d4a533; }
-                </style></head><body>
-                  <div class="header">
-                    <img src="${LOGO_URL}" class="logo" crossorigin="anonymous" />
-                    <div class="company">
-                      <h1>INVERSIONES CTEC</h1>
-                      <p>Servicios Financieros · República Dominicana</p>
-                    </div>
-                  </div>
-                  <div class="doc-title">📄 CONTRATO DE PRÉSTAMO</div>
-                  <div class="section-title">Datos del Cliente</div>
-                  <div class="info-grid">
-                    <div class="info-item"><span>Nombre:</span><span>${client?.first_name} ${client?.last_name}</span></div>
-                    <div class="info-item"><span>Cédula:</span><span>${client?.id_number || '—'}</span></div>
-                    <div class="info-item"><span>Teléfono:</span><span>${client?.phone || '—'}</span></div>
-                    <div class="info-item"><span>Dirección:</span><span>${client?.address || '—'}</span></div>
-                  </div>
-                  <div class="section-title">Condiciones del Préstamo</div>
-                  <div class="info-grid">
-                    <div class="info-item"><span>Monto:</span><span>${fmt(parseFloat(form.amount))}</span></div>
-                    <div class="info-item"><span>Interés:</span><span>${form.interest_rate}% ${INTEREST_LABELS[form.interest_type]}</span></div>
-                    <div class="info-item"><span>Cuotas:</span><span>${form.num_installments}</span></div>
-                    <div class="info-item"><span>Valor Cuota:</span><span>${fmt(calc.installmentAmount)}</span></div>
-                    <div class="info-item"><span>Inicio:</span><span>${form.start_date}</span></div>
-                    <div class="info-item"><span>Vencimiento:</span><span>${calc.dueDate}</span></div>
-                  </div>
-                  <div class="totals-box">
-                    <div class="total-item"><p>Capital</p><p style="color:#3b82f6">${fmt(parseFloat(form.amount))}</p></div>
-                    <div class="total-item"><p>Interés Total</p><p style="color:#d4a533">${fmt(calc.totalInterest)}</p></div>
-                    <div class="total-item"><p>TOTAL A PAGAR</p><p style="color:#10b981">${fmt(calc.totalToPay)}</p></div>
-                  </div>
-                  <div class="section-title">Calendario de Pagos</div>
-                  <table>
-                    <thead><tr><th>#</th><th>Fecha</th><th>Monto</th></tr></thead>
-                    <tbody>${calc.schedule.map(s => `<tr><td>${s.installment_number}</td><td>${s.due_date}</td><td>RD$ ${s.amount.toFixed(2)}</td></tr>`).join('')}</tbody>
-                  </table>
-                  <div class="footer">
-                    <strong>INVERSIONES CTEC</strong> — República Dominicana<br/>
-                    Contacto WhatsApp: 809-462-2260
-                  </div>
-                </body></html>`);
-                win.document.close();
-                win.onload = () => {
-                  html2canvas(win.document.body, { scale: 2, useCORS: true, backgroundColor: '#ffffff' }).then(canvas => {
-                    const link = win.document.createElement('a');
-                    link.download = `prestamo-${client?.first_name}_${client?.last_name}-${form.start_date}.png`;
-                    link.href = canvas.toDataURL('image/png');
-                    link.click();
-                    win.close();
-                  });
-                };
-              }}
-              className="border-blue-500/40 text-blue-400 hover:bg-blue-500/10"
-            >
-              <Image className="w-4 h-4 mr-2" /> Descargar Imagen
             </Button>
           )}
           <Button type="submit" disabled={!calc || !form.client_id || createMutation.isPending} className="bg-[#d4a533] hover:bg-[#b8922d] text-black font-semibold">
