@@ -108,18 +108,35 @@ export default function LoanDetail() {
   };
 
   const downloadReceiptImage = (payment) => {
-    const win = window.open('', '_blank');
-    win.document.write(getReceiptHtml(payment));
-    win.document.close();
-    win.onload = () => {
-      html2canvas(win.document.body, { scale: 2, useCORS: true, backgroundColor: '#ffffff' }).then(canvas => {
-        const link = win.document.createElement('a');
-        link.download = `recibo-${payment.payment_date}-${loan?.client_name?.replace(/ /g, '_') || 'pago'}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-        win.close();
-      });
-    };
+    const container = document.createElement('div');
+    container.style.cssText = 'position:fixed;left:-9999px;top:0;width:420px;background:#fff;';
+    container.innerHTML = `
+      <div style="font-family:Arial;max-width:400px;margin:auto;padding:20px;background:#fff;">
+        <div style="text-align:center;border-bottom:2px solid #d4a533;padding-bottom:15px;margin-bottom:15px;">
+          <img src="${LOGO_URL}" style="width:80px;height:80px;object-fit:contain;" crossorigin="anonymous" />
+          <h1 style="color:#d4a533;margin:5px 0;font-size:18px;">INVERSIONES CTEC</h1>
+          <p style="font-size:12px;color:#666;margin:0;">Recibo de Pago</p>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;"><span>Cliente:</span><strong>${loan?.client_name || ''}</strong></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;"><span>Fecha:</span><strong>${payment.payment_date}</strong></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;"><span>Monto Pagado:</span><strong>RD$ ${payment.amount?.toFixed(2)}</strong></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;"><span>Saldo Pendiente:</span><strong>RD$ ${(payment.remaining_balance || 0).toFixed(2)}</strong></div>
+        ${payment.notes ? `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;"><span>Notas:</span><span>${payment.notes}</span></div>` : ''}
+        <div style="font-size:20px;font-weight:bold;color:#10b981;text-align:center;margin-top:15px;">✓ Pago Recibido: RD$ ${payment.amount?.toFixed(2)}</div>
+        <div style="text-align:center;margin-top:20px;font-size:11px;color:#999;">
+          Inversiones CTEC — Gracias por su pago<br/>
+          Contacto WhatsApp: 809-462-2260
+        </div>
+      </div>
+    `;
+    document.body.appendChild(container);
+    html2canvas(container, { scale: 2, useCORS: true, backgroundColor: '#ffffff', width: 420 }).then(canvas => {
+      const link = document.createElement('a');
+      link.download = `recibo-${payment.payment_date}-${loan?.client_name?.replace(/ /g, '_') || 'pago'}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      document.body.removeChild(container);
+    });
   };
 
   if (isLoading || !loan) {
