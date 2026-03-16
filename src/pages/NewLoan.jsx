@@ -7,7 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { addDays, addWeeks, addMonths, format } from 'date-fns';
-import { Calculator, ArrowLeft, FileDown } from 'lucide-react';
+import { Calculator, ArrowLeft, FileDown, Image } from 'lucide-react';
+import html2canvas from 'html2canvas';
 import { Link } from 'react-router-dom';
 
 const LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/user_69b62672be45da00af3df17b/0d96f8146_LogodeinversionesCTEC.png";
