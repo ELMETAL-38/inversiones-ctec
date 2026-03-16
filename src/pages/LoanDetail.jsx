@@ -240,9 +240,14 @@ export default function LoanDetail() {
                   <p className="text-xs text-gray-500">{p.payment_date} · {p.payment_type === 'full' ? 'Pago completo' : 'Pago parcial'}</p>
                   {p.notes && <p className="text-xs text-gray-600 mt-0.5">{p.notes}</p>}
                 </div>
-                <button onClick={() => generateReceipt(p)} className="text-[#d4a533] hover:text-[#b8922d] p-2">
-                  <FileText className="w-4 h-4" />
-                </button>
+                <div className="flex gap-1">
+                  <button onClick={() => generateReceipt(p)} title="Imprimir recibo" className="text-[#d4a533] hover:text-[#b8922d] p-2">
+                    <FileText className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => downloadReceiptImage(p)} title="Descargar imagen" className="text-blue-400 hover:text-blue-300 p-2">
+                    <Image className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>

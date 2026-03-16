@@ -118,9 +118,14 @@ export default function Payments() {
                     </td>
                     <td className="p-3 text-right text-gray-400">{fmt(p.remaining_balance)}</td>
                     <td className="p-3 text-center">
-                      <button onClick={() => generateReceipt(p)} className="text-[#d4a533] hover:text-[#b8922d] p-1">
-                        <FileText className="w-4 h-4" />
-                      </button>
+                      <div className="flex gap-1 justify-center">
+                        <button onClick={() => generateReceipt(p)} title="Imprimir recibo" className="text-[#d4a533] hover:text-[#b8922d] p-1">
+                          <FileText className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => downloadReceiptImage(p)} title="Descargar imagen" className="text-blue-400 hover:text-blue-300 p-1">
+                          <Image className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
