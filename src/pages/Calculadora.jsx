@@ -77,7 +77,7 @@ export default function Calculadora() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="text-xs text-gray-500 mb-1.5 block">Tipo de Interés</label>
-            <Select value={form.interest_type} onValueChange={v => setForm(p => ({ ...p, interest_type: v }))}>
+            <Select value={form.interest_type || undefined} onValueChange={v => setForm(p => ({ ...p, interest_type: v }))}>
               <SelectTrigger className="bg-[#0a0e17] border-[#1e293b] text-gray-200">
                 <SelectValue />
               </SelectTrigger>
