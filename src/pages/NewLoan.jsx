@@ -193,6 +193,11 @@ async function downloadContractAsImage(loanData, client, calc, fmt) {
       </div>
       <div style="text-align:center;margin-top:24px;padding-top:14px;border-top:2px solid #d4a533;color:#888;font-size:11px;">
         📱 <strong style="color:#d4a533;">WhatsApp: 809-462-2360</strong><br/>
+        <strong style="color:#d4a533;">INVERSIONES CTEC</strong> — República Dominicana
+      </div>
+    </div>
+  `;
+  document.body.appendChild(container);
   const canvas = await html2canvas(container, { scale: 2, useCORS: true, allowTaint: true });
   document.body.removeChild(container);
   const link = document.createElement('a');
