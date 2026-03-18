@@ -110,14 +110,12 @@ function generateLoanPDF(loanData, client, calc, fmt) {
         </table>
       </div>
 
-      <div style="margin-top:24px;padding:14px;background:#fffbf0;border:1px solid #e8d89a;border-radius:6px;font-size:10px;color:#555;">
-        <div style="font-weight:bold;color:#d4a533;font-size:11px;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">Políticas y Reglas de Préstamos y Cobranzas</div>
-        <p style="margin-bottom:6px;"><strong>1. CARGOS POR MORA (ATRASOS):</strong> En caso de no cumplir con el pago en la fecha pactada, se aplicará un cargo por mora del 5% diario calculado sobre la deuda total. Este cargo se generará cada día de retraso hasta que la cuenta sea saldada en su totalidad.</p>
-        <p><strong>2. ADVERTENCIA DE INCUMPLIMIENTO:</strong> Si el atraso (pago de cuota más mora acumulada) supera los siete (7) días calendario, se aplicarán cargos administrativos adicionales por gestión de cobro externo.</p>
+      <div class="signature-area">
+        <div class="sig-box">Firma del Prestatario<br/>${client?.first_name} ${client?.last_name}</div>
+        <div class="sig-box">Firma Inversiones CTEC<br/>Autorizado</div>
       </div>
 
-      <div class="signature-area">
-        <div class="sig-box">Firma del Prestatario
+      <div class="footer">
         <strong>INVERSIONES CTEC</strong> — Tel: 809-462-2360<br/>
         Este documento constituye un contrato de préstamo legalmente vinculante.
       </div>
@@ -186,11 +184,6 @@ async function downloadContractAsImage(loanData, client, calc, fmt) {
         <span style="width:100px;text-align:right;">Monto</span>
       </div>
       ${scheduleRows}
-      <div style="margin-top:20px;padding:12px;background:#fffbf0;border:1px solid #e8d89a;border-radius:6px;font-size:9px;color:#555;">
-        <div style="font-weight:bold;color:#d4a533;font-size:10px;margin-bottom:6px;text-transform:uppercase;">Políticas y Reglas de Préstamos y Cobranzas</div>
-        <p style="margin-bottom:5px;"><strong>1. CARGOS POR MORA (ATRASOS):</strong> En caso de no cumplir con el pago en la fecha pactada, se aplicará un cargo por mora del 5% diario calculado sobre la deuda total. Este cargo se generará cada día de retraso hasta que la cuenta sea saldada en su totalidad.</p>
-        <p><strong>2. ADVERTENCIA DE INCUMPLIMIENTO:</strong> Si el atraso (pago de cuota más mora acumulada) supera los siete (7) días calendario, se aplicarán cargos administrativos adicionales por gestión de cobro externo.</p>
-      </div>
       <div style="text-align:center;margin-top:24px;padding-top:14px;border-top:2px solid #d4a533;color:#888;font-size:11px;">
         📱 <strong style="color:#d4a533;">WhatsApp: 809-462-2360</strong><br/>
         <strong style="color:#d4a533;">INVERSIONES CTEC</strong> — República Dominicana
