@@ -22,7 +22,8 @@ export default function Payments() {
 
   const fmt = (n) => new Intl.NumberFormat('es-DO', { style: 'currency', currency: 'DOP' }).format(n || 0);
 
-  const generateReceipt = (p) => {
+  const generateReceipt = async (p) => {
+    const clientData = await base44.entities.Client.filter({ id: p.client_id }).then(r => r[0]);
     const receiptHtml = `
       <html><head><style>
         body { font-family: Arial; max-width: 400px; margin: auto; padding: 20px; }
@@ -39,6 +40,9 @@ export default function Payments() {
           <p style="font-size:12px;color:#666;">Recibo de Pago</p>
         </div>
         <div class="row"><span>Cliente:</span><strong>${p.client_name || ''}</strong></div>
+        <div class="row"><span>Cédula / ID:</span><strong>${clientData?.id_number || '—'}</strong></div>
+        <div class="row"><span>Teléfono:</span><strong>${clientData?.phone || '—'}</strong></div>
+        <div class="row"><span>Dirección:</span><strong>${clientData?.address || '—'}</strong></div>
         <div class="row"><span>Fecha:</span><strong>${p.payment_date}</strong></div>
         <div class="row"><span>Monto Pagado:</span><strong>RD$ ${p.amount?.toFixed(2)}</strong></div>
         <div class="row"><span>Saldo Pendiente:</span><strong>RD$ ${(p.remaining_balance || 0).toFixed(2)}</strong></div>
@@ -58,6 +62,7 @@ export default function Payments() {
 
   const downloadReceiptAsImage = async (p) => {
     const { default: html2canvas } = await import('html2canvas');
+    const clientData = await base44.entities.Client.filter({ id: p.client_id }).then(r => r[0]);
     const container = document.createElement('div');
     container.style.cssText = 'position:fixed;left:-9999px;top:0;width:440px;background:white;padding:0;';
     container.innerHTML = `
@@ -68,8 +73,10 @@ export default function Payments() {
           <div style="font-size:12px;color:#666;">Recibo de Pago</div>
         </div>
         <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;"><span>Cliente:</span><strong>${p.client_name || ''}</strong></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;"><span>Cédula / ID:</span><strong>${clientData?.id_number || '—'}</strong></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;"><span>Teléfono:</span><strong>${clientData?.phone || '—'}</strong></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;"><span>Dirección:</span><strong>${clientData?.address || '—'}</strong></div>
         <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;"><span>Fecha:</span><strong>${p.payment_date}</strong></div>
-        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;"><span>Monto Pagado:</span><strong>RD$ ${p.amount?.toFixed(2)}</strong></div>
         <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;"><span>Saldo Pendiente:</span><strong>RD$ ${(p.remaining_balance || 0).toFixed(2)}</strong></div>
         ${p.notes ? `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;"><span>Notas:</span><span>${p.notes}</span></div>` : ''}
         <div style="font-size:18px;font-weight:bold;color:#10b981;text-align:center;margin-top:15px;">✓ Pago Recibido: RD$ ${p.amount?.toFixed(2)}</div>
