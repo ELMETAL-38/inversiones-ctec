@@ -85,5 +85,10 @@ module.exports = {
   		}
   	}
   },
+  safelist: [
+    'from-purple-500/10', 'to-purple-500/5', 'border-purple-500/20', 'text-purple-400',
+    'from-pink-500/10', 'to-pink-500/5', 'border-pink-500/20', 'text-pink-400',
+    'from-orange-500/10', 'to-orange-500/5', 'border-orange-500/20', 'text-orange-400',
+  ],
   plugins: [require("tailwindcss-animate")],
 }
