@@ -6,6 +6,9 @@ export default function StatCard({ icon: Icon, label, value, trend, trendUp, col
     emerald: { bg: "from-emerald-500/10 to-emerald-500/5", icon: "text-emerald-400", border: "border-emerald-500/20" },
     blue: { bg: "from-blue-500/10 to-blue-500/5", icon: "text-blue-400", border: "border-blue-500/20" },
     red: { bg: "from-red-500/10 to-red-500/5", icon: "text-red-400", border: "border-red-500/20" },
+    purple: { bg: "from-purple-500/10 to-purple-500/5", icon: "text-purple-400", border: "border-purple-500/20" },
+    pink: { bg: "from-pink-500/10 to-pink-500/5", icon: "text-pink-400", border: "border-pink-500/20" },
+    orange: { bg: "from-orange-500/10 to-orange-500/5", icon: "text-orange-400", border: "border-orange-500/20" },
   };
   const c = colorMap[color];
 

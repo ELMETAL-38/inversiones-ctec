@@ -77,17 +77,17 @@ export default function Dashboard() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={HandCoins} label="Préstamos Activos" value={activeLoans.length} color="gold" />
+        <StatCard icon={HandCoins} label="Préstamos Activos" value={activeLoans.length} color="emerald" />
         <StatCard icon={DollarSign} label="Total Prestado" value={fmt(totalLent)} color="blue" />
-        <StatCard icon={TrendingUp} label="Total Cobrado" value={fmt(totalCollected)} color="emerald" />
+        <StatCard icon={TrendingUp} label="Total Cobrado" value={fmt(totalCollected)} color="gold" />
         <StatCard icon={AlertTriangle} label="Vencidos" value={overdueLoans.length} color="red" />
       </div>
 
       {/* Secondary stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <StatCard icon={Users} label="Total Clientes" value={clients.length} color="blue" />
-        <StatCard icon={TrendingUp} label="Intereses Generados" value={fmt(totalInterest)} color="gold" />
-        <StatCard icon={Clock} label="Saldo Pendiente" value={fmt(totalLent + totalInterest - totalCollected)} color="red" />
+        <StatCard icon={Users} label="Total Clientes" value={clients.length} color="purple" />
+        <StatCard icon={TrendingUp} label="Intereses Generados" value={fmt(totalInterest)} color="pink" />
+        <StatCard icon={Clock} label="Saldo Pendiente" value={fmt(totalLent + totalInterest - totalCollected)} color="orange" />
       </div>
 
       {/* Charts */}
