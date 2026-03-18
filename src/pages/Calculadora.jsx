@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Calculator, RotateCcw } from 'lucide-react';
+import { Calculator, RotateCcw, Download } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
 import { Button } from '@/components/ui/button';
@@ -45,6 +45,16 @@ export default function Calculadora() {
 
   const reset = () => setForm(DEFAULT);
 
+  const downloadImage = async () => {
+    const { default: html2canvas } = await import('html2canvas');
+    const el = document.getElementById('calc-result');
+    const canvas = await html2canvas(el, { scale: 2, backgroundColor: '#0a0e17', useCORS: true });
+    const link = document.createElement('a');
+    link.download = `calculo-prestamo-${form.start_date}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  };
+
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
@@ -55,6 +65,11 @@ export default function Calculadora() {
         <Button variant="outline" onClick={reset} className="border-[#1e293b] text-gray-400 hover:bg-white/5">
           <RotateCcw className="w-4 h-4 mr-2" /> Limpiar
         </Button>
+        {calc && (
+          <Button onClick={downloadImage} className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold">
+            <Download className="w-4 h-4 mr-2" /> Descargar Imagen
+          </Button>
+        )}
       </div>
 
       {/* Inputs */}
@@ -114,6 +129,7 @@ export default function Calculadora() {
 
       {/* Result Summary */}
       {calc && (
+        <div id="calc-result">
         <div className="bg-[#0a0e17] rounded-xl border border-[#d4a533]/30 p-6 space-y-4">
           <div className="flex items-center gap-2 text-[#d4a533] font-semibold">
             <Calculator className="w-4 h-4" /> Resultado del Cálculo
@@ -140,17 +156,15 @@ export default function Calculadora() {
             Fecha de vencimiento: <span className="text-gray-300 font-medium">{calc.dueDate}</span>
           </div>
         </div>
-      )}
 
-      {/* Schedule */}
-      {calc && calc.schedule.length > 0 && (
-        <div className="bg-[#111827] rounded-xl border border-[#1e293b] overflow-hidden">
-          <div className="px-5 py-3 border-b border-[#1e293b]">
-            <h3 className="text-sm font-semibold text-gray-300">Calendario de Pagos</h3>
-          </div>
-          <div className="max-h-72 overflow-y-auto">
+        {/* Schedule inside capture */}
+        {calc.schedule.length > 0 && (
+          <div className="bg-[#111827] rounded-xl border border-[#1e293b] overflow-hidden mt-6">
+            <div className="px-5 py-3 border-b border-[#1e293b]">
+              <h3 className="text-sm font-semibold text-gray-300">Calendario de Pagos</h3>
+            </div>
             <table className="w-full text-sm">
-              <thead className="sticky top-0 bg-[#111827]">
+              <thead>
                 <tr className="text-gray-500 text-xs border-b border-[#1e293b]">
                   <th className="text-left p-3">#</th>
                   <th className="text-left p-3">Fecha de Vencimiento</th>
@@ -159,7 +173,7 @@ export default function Calculadora() {
               </thead>
               <tbody>
                 {calc.schedule.map(s => (
-                  <tr key={s.num} className="border-b border-[#1e293b]/50 hover:bg-white/[0.02]">
+                  <tr key={s.num} className="border-b border-[#1e293b]/50">
                     <td className="p-3 text-gray-400">{s.num}</td>
                     <td className="p-3 text-gray-300">{format(new Date(s.due_date), 'dd/MM/yyyy')}</td>
                     <td className="p-3 text-right text-emerald-400 font-medium">{fmt(s.amount)}</td>
@@ -168,8 +182,10 @@ export default function Calculadora() {
               </tbody>
             </table>
           </div>
+        )}
         </div>
       )}
+
     </div>
   );
 }
