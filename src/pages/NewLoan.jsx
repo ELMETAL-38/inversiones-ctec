@@ -128,6 +128,77 @@ function generateLoanPDF(loanData, client, calc, fmt) {
   win.onload = () => win.print();
 }
 
+async function downloadContractAsImage(loanData, client, calc, fmt) {
+  const { default: html2canvas } = await import('html2canvas');
+  const { form } = loanData;
+  const INTEREST_LABELS_LOCAL = { daily: 'Diario', weekly: 'Semanal', biweekly: 'Quincenal', monthly: 'Mensual' };
+  const scheduleRows = calc.schedule.map(s => `
+    <div style="display:flex;justify-content:space-between;padding:5px 8px;border-bottom:1px solid #f0f0f0;font-size:12px;">
+      <span style="width:40px;text-align:center;">${s.installment_number}</span>
+      <span style="flex:1;text-align:center;">${s.due_date}</span>
+      <span style="width:100px;text-align:right;">RD$ ${s.amount.toFixed(2)}</span>
+    </div>
+  `).join('');
+
+  const container = document.createElement('div');
+  container.style.cssText = 'position:fixed;left:-9999px;top:0;width:650px;background:white;padding:0;';
+  container.innerHTML = `
+    <div style="font-family:Arial,sans-serif;width:620px;padding:30px;background:white;color:#1a1a1a;font-size:13px;">
+      <div style="display:flex;align-items:center;gap:16px;border-bottom:3px solid #d4a533;padding-bottom:16px;margin-bottom:20px;">
+        <img src="${LOGO_URL}" style="width:70px;height:70px;object-fit:contain;" />
+        <div>
+          <div style="color:#d4a533;font-size:22px;font-weight:bold;">INVERSIONES CTEC</div>
+          <div style="color:#555;font-size:11px;">Servicios Financieros · República Dominicana</div>
+        </div>
+        <div style="margin-left:auto;text-align:right;font-size:11px;color:#888;">
+          <div>Fecha: ${new Date().toLocaleDateString('es-DO')}</div>
+          <div>Contrato de Préstamo</div>
+        </div>
+      </div>
+      <div style="text-align:center;font-size:16px;font-weight:bold;color:#333;background:#f9f5ec;padding:10px;border-radius:6px;margin-bottom:20px;border:1px solid #e8d89a;">📄 CONTRATO DE PRÉSTAMO</div>
+      <div style="font-size:12px;font-weight:bold;color:#d4a533;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #e8d89a;padding-bottom:4px;margin-bottom:10px;">Datos del Cliente</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;">
+        <div style="display:flex;justify-content:space-between;padding:6px 10px;background:#f9f9f9;border-radius:4px;"><span style="color:#666;">Nombre:</span><span style="font-weight:600;">${client?.first_name} ${client?.last_name}</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 10px;background:#f9f9f9;border-radius:4px;"><span style="color:#666;">Cédula:</span><span style="font-weight:600;">${client?.id_number || '—'}</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 10px;background:#f9f9f9;border-radius:4px;"><span style="color:#666;">Teléfono:</span><span style="font-weight:600;">${client?.phone || '—'}</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 10px;background:#f9f9f9;border-radius:4px;"><span style="color:#666;">Dirección:</span><span style="font-weight:600;">${client?.address || '—'}</span></div>
+      </div>
+      <div style="font-size:12px;font-weight:bold;color:#d4a533;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #e8d89a;padding-bottom:4px;margin-bottom:10px;">Condiciones del Préstamo</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;">
+        <div style="display:flex;justify-content:space-between;padding:6px 10px;background:#f9f9f9;border-radius:4px;"><span style="color:#666;">Monto:</span><span style="font-weight:600;">${fmt(parseFloat(form.amount))}</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 10px;background:#f9f9f9;border-radius:4px;"><span style="color:#666;">Tasa:</span><span style="font-weight:600;">${form.interest_rate}% ${INTEREST_LABELS_LOCAL[form.interest_type]}</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 10px;background:#f9f9f9;border-radius:4px;"><span style="color:#666;">Cuotas:</span><span style="font-weight:600;">${form.num_installments}</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 10px;background:#f9f9f9;border-radius:4px;"><span style="color:#666;">Valor Cuota:</span><span style="font-weight:600;">${fmt(calc.installmentAmount)}</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 10px;background:#f9f9f9;border-radius:4px;"><span style="color:#666;">Inicio:</span><span style="font-weight:600;">${form.start_date}</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 10px;background:#f9f9f9;border-radius:4px;"><span style="color:#666;">Vencimiento:</span><span style="font-weight:600;">${calc.dueDate}</span></div>
+      </div>
+      <div style="background:linear-gradient(135deg,#fffbf0,#fff8e6);border:2px solid #d4a533;border-radius:8px;padding:16px;margin-bottom:20px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;text-align:center;">
+        <div><div style="color:#888;font-size:11px;">Capital</div><div style="font-size:17px;font-weight:bold;color:#3b82f6;">${fmt(parseFloat(form.amount))}</div></div>
+        <div><div style="color:#888;font-size:11px;">Interés Total</div><div style="font-size:17px;font-weight:bold;color:#d4a533;">${fmt(calc.totalInterest)}</div></div>
+        <div><div style="color:#888;font-size:11px;">TOTAL A PAGAR</div><div style="font-size:17px;font-weight:bold;color:#10b981;">${fmt(calc.totalToPay)}</div></div>
+      </div>
+      <div style="font-size:12px;font-weight:bold;color:#d4a533;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #e8d89a;padding-bottom:4px;margin-bottom:10px;">Calendario de Pagos</div>
+      <div style="display:flex;justify-content:space-between;padding:8px;background:#d4a533;color:white;font-weight:bold;font-size:12px;border-radius:4px 4px 0 0;">
+        <span style="width:40px;text-align:center;">#</span>
+        <span style="flex:1;text-align:center;">Fecha de Vencimiento</span>
+        <span style="width:100px;text-align:right;">Monto</span>
+      </div>
+      ${scheduleRows}
+      <div style="text-align:center;margin-top:24px;padding-top:14px;border-top:2px solid #d4a533;color:#888;font-size:11px;">
+        📱 <strong style="color:#d4a533;">WhatsApp Gestor: 809-462-2260</strong><br/>
+        <strong style="color:#d4a533;">INVERSIONES CTEC</strong> — República Dominicana
+      </div>
+    </div>
+  `;
+  document.body.appendChild(container);
+  const canvas = await html2canvas(container, { scale: 2, useCORS: true, allowTaint: true });
+  document.body.removeChild(container);
+  const link = document.createElement('a');
+  link.download = `contrato-${client?.first_name}-${client?.last_name}-${form.start_date}.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
 const INTEREST_LABELS = { daily: 'Diario', weekly: 'Semanal', biweekly: 'Quincenal', monthly: 'Mensual' };
 
 function generateSchedule(startDate, numInstallments, interestType, installmentAmount) {
@@ -330,17 +401,30 @@ export default function NewLoan() {
         <div className="flex flex-wrap justify-end gap-3 pt-2">
           <Button type="button" variant="outline" onClick={() => navigate('/Loans')} className="border-[#1e293b] text-gray-400 hover:bg-white/5">Cancelar</Button>
           {calc && form.client_id && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                const client = clients.find(c => c.id === form.client_id);
-                generateLoanPDF({ form }, client, calc, fmt);
-              }}
-              className="border-[#d4a533]/40 text-[#d4a533] hover:bg-[#d4a533]/10"
-            >
-              <FileDown className="w-4 h-4 mr-2" /> Vista Previa PDF
-            </Button>
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  const client = clients.find(c => c.id === form.client_id);
+                  generateLoanPDF({ form }, client, calc, fmt);
+                }}
+                className="border-[#d4a533]/40 text-[#d4a533] hover:bg-[#d4a533]/10"
+              >
+                <FileDown className="w-4 h-4 mr-2" /> Vista Previa PDF
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  const client = clients.find(c => c.id === form.client_id);
+                  downloadContractAsImage({ form }, client, calc, fmt);
+                }}
+                className="border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10"
+              >
+                <FileDown className="w-4 h-4 mr-2" /> Descargar Imagen
+              </Button>
+            </>
           )}
           <Button type="submit" disabled={!calc || !form.client_id || createMutation.isPending} className="bg-[#d4a533] hover:bg-[#b8922d] text-black font-semibold">
             Crear Préstamo

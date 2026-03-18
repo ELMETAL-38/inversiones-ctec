@@ -105,6 +105,35 @@ export default function LoanDetail() {
     win.print();
   };
 
+  const downloadReceiptAsImage = async (payment) => {
+    const { default: html2canvas } = await import('html2canvas');
+    const container = document.createElement('div');
+    container.style.cssText = 'position:fixed;left:-9999px;top:0;width:440px;background:white;padding:0;';
+    container.innerHTML = `
+      <div style="font-family:Arial,sans-serif;width:400px;margin:0 auto;padding:20px;background:white;">
+        <div style="text-align:center;border-bottom:2px solid #d4a533;padding-bottom:15px;margin-bottom:10px;">
+          <img src="${LOGO_URL}" style="width:70px;height:70px;object-fit:contain;" />
+          <div style="color:#d4a533;font-size:18px;font-weight:bold;margin:5px 0;">INVERSIONES CTEC</div>
+          <div style="font-size:12px;color:#666;">Recibo de Pago</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;"><span>Cliente:</span><strong>${loan?.client_name || ''}</strong></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;"><span>Fecha:</span><strong>${payment.payment_date}</strong></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;"><span>Monto Pagado:</span><strong>RD$ ${payment.amount?.toFixed(2)}</strong></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;"><span>Saldo Pendiente:</span><strong>RD$ ${(payment.remaining_balance || 0).toFixed(2)}</strong></div>
+        ${payment.notes ? `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;"><span>Notas:</span><span>${payment.notes}</span></div>` : ''}
+        <div style="font-size:18px;font-weight:bold;color:#10b981;text-align:center;margin-top:15px;">✓ Pago Recibido: RD$ ${payment.amount?.toFixed(2)}</div>
+        <div style="text-align:center;margin-top:20px;font-size:11px;color:#999;">📱 WhatsApp Gestor: 809-462-2260<br/>Inversiones CTEC — Gracias por su pago</div>
+      </div>
+    `;
+    document.body.appendChild(container);
+    const canvas = await html2canvas(container, { scale: 2, useCORS: true, allowTaint: true });
+    document.body.removeChild(container);
+    const link = document.createElement('a');
+    link.download = `recibo-${payment.payment_date}-${loan?.client_name || ''}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  };
+
   if (isLoading || !loan) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -223,9 +252,14 @@ export default function LoanDetail() {
                   <p className="text-xs text-gray-500">{p.payment_date} · {p.payment_type === 'full' ? 'Pago completo' : 'Pago parcial'}</p>
                   {p.notes && <p className="text-xs text-gray-600 mt-0.5">{p.notes}</p>}
                 </div>
-                <button onClick={() => generateReceipt(p)} className="text-[#d4a533] hover:text-[#b8922d] p-2">
-                  <FileText className="w-4 h-4" />
-                </button>
+                <div className="flex gap-1">
+                  <button onClick={() => generateReceipt(p)} title="Imprimir recibo" className="text-[#d4a533] hover:text-[#b8922d] p-2">
+                    <FileText className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => downloadReceiptAsImage(p)} title="Descargar imagen" className="text-emerald-400 hover:text-emerald-300 p-2">
+                    <Download className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
