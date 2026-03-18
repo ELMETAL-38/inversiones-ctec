@@ -34,6 +34,12 @@ export default function LoanDetail() {
     enabled: !!loanId,
   });
 
+  const { data: client } = useQuery({
+    queryKey: ['client', loan?.client_id],
+    queryFn: () => base44.entities.Client.filter({ id: loan.client_id }).then(r => r[0]),
+    enabled: !!loan?.client_id,
+  });
+
   const payMutation = useMutation({
     mutationFn: async (payData) => {
       await base44.entities.Payment.create(payData);
@@ -88,6 +94,9 @@ export default function LoanDetail() {
           <p style="font-size:12px;color:#666;">Recibo de Pago</p>
         </div>
         <div class="row"><span>Cliente:</span><strong>${loan?.client_name || ''}</strong></div>
+        <div class="row"><span>Cédula / ID:</span><strong>${client?.id_number || '—'}</strong></div>
+        <div class="row"><span>Teléfono:</span><strong>${client?.phone || '—'}</strong></div>
+        <div class="row"><span>Dirección:</span><strong>${client?.address || '—'}</strong></div>
         <div class="row"><span>Fecha:</span><strong>${payment.payment_date}</strong></div>
         <div class="row"><span>Monto Pagado:</span><strong>RD$ ${payment.amount?.toFixed(2)}</strong></div>
         <div class="row"><span>Saldo Pendiente:</span><strong>RD$ ${payment.remaining_balance?.toFixed(2)}</strong></div>
@@ -117,8 +126,10 @@ export default function LoanDetail() {
           <div style="font-size:12px;color:#666;">Recibo de Pago</div>
         </div>
         <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;"><span>Cliente:</span><strong>${loan?.client_name || ''}</strong></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;"><span>Cédula / ID:</span><strong>${client?.id_number || '—'}</strong></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;"><span>Teléfono:</span><strong>${client?.phone || '—'}</strong></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;"><span>Dirección:</span><strong>${client?.address || '—'}</strong></div>
         <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;"><span>Fecha:</span><strong>${payment.payment_date}</strong></div>
-        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;"><span>Monto Pagado:</span><strong>RD$ ${payment.amount?.toFixed(2)}</strong></div>
         <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;"><span>Saldo Pendiente:</span><strong>RD$ ${(payment.remaining_balance || 0).toFixed(2)}</strong></div>
         ${payment.notes ? `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;"><span>Notas:</span><span>${payment.notes}</span></div>` : ''}
         <div style="font-size:18px;font-weight:bold;color:#10b981;text-align:center;margin-top:15px;">✓ Pago Recibido: RD$ ${payment.amount?.toFixed(2)}</div>
