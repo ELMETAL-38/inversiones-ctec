@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Calculator, RotateCcw } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 import { Button } from '@/components/ui/button';
 import { addDays, addWeeks, addMonths, format } from 'date-fns';
 
@@ -77,16 +77,22 @@ export default function Calculadora() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="text-xs text-gray-500 mb-1.5 block">Tipo de Interés</label>
-            <Select value={form.interest_type || undefined} onValueChange={v => setForm(p => ({ ...p, interest_type: v }))}>
-              <SelectTrigger className="bg-[#0a0e17] border-[#1e293b] text-gray-200">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-[#1f2937] border-[#374151] text-gray-200">
-                {Object.entries(INTEREST_LABELS).map(([k, v]) => (
-                  <SelectItem key={k} value={k}>{v}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="grid grid-cols-2 gap-2">
+              {Object.entries(INTEREST_LABELS).map(([k, v]) => (
+                <button
+                  key={k}
+                  type="button"
+                  onClick={() => setForm(p => ({ ...p, interest_type: k }))}
+                  className={`py-2 px-3 rounded-lg text-sm font-medium border transition-colors ${
+                    form.interest_type === k
+                      ? 'bg-[#d4a533]/15 border-[#d4a533]/40 text-[#d4a533]'
+                      : 'border-[#1e293b] text-gray-500 hover:bg-white/5 hover:text-gray-300'
+                  }`}
+                >
+                  {v}
+                </button>
+              ))}
+            </div>
           </div>
           <div>
             <label className="text-xs text-gray-500 mb-1.5 block">Número de Cuotas</label>
