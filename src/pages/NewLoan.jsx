@@ -291,7 +291,7 @@ export default function NewLoan() {
       <form onSubmit={handleSubmit} className="bg-[#111827] rounded-xl border border-[#1e293b] p-6 space-y-5">
         <div>
           <label className="text-xs text-gray-500 mb-1.5 block">Cliente *</label>
-          <Select value={form.client_id} onValueChange={v => setForm(p => ({ ...p, client_id: v }))}>
+          <Select value={form.client_id || undefined} onValueChange={v => setForm(p => ({ ...p, client_id: v }))}>
             <SelectTrigger className="bg-[#0a0e17] border-[#1e293b] text-gray-200">
               <SelectValue placeholder="Seleccionar cliente" />
             </SelectTrigger>
