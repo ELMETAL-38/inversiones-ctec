@@ -102,6 +102,7 @@ export default function Loans() {
                   <th className="text-right p-3 font-medium">Pagado</th>
                   <th className="text-right p-3 font-medium">Saldo</th>
                   <th className="text-right p-3 font-medium text-red-400">Mora</th>
+                  <th className="text-right p-3 font-medium text-yellow-400">Total Adeudado</th>
                   <th className="text-center p-3 font-medium">Estado</th>
                   <th className="text-center p-3 font-medium">Acciones</th>
                 </tr>
@@ -126,6 +127,7 @@ export default function Loans() {
                       <td className="p-3 text-right text-emerald-400">{fmt(l.total_paid)}</td>
                       <td className="p-3 text-right text-[#d4a533]">{fmt(l.remaining_balance)}</td>
                       <td className={`p-3 text-right font-medium ${mora > 0 ? 'text-red-400' : 'text-gray-600'}`}>{mora > 0 ? fmt(mora) : '—'}</td>
+                      <td className="p-3 text-right font-bold text-yellow-400">{fmt((l.remaining_balance || 0) + mora)}</td>
                       <td className="p-3 text-center">
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[status]}`}>
                           {STATUS_TEXT[status]}
@@ -145,7 +147,7 @@ export default function Loans() {
                   );
                 })}
                 {filtered.length === 0 && (
-                  <tr><td colSpan={9} className="text-center py-12 text-gray-600">No hay préstamos</td></tr>
+                  <tr><td colSpan={10} className="text-center py-12 text-gray-600">No hay préstamos</td></tr>
                 )}
               </tbody>
             </table>
