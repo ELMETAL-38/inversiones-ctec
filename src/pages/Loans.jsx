@@ -23,6 +23,8 @@ export default function Loans() {
   const [tab, setTab] = useState('all');
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deletingLoan, setDeletingLoan] = useState(null);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteError, setDeleteError] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -138,7 +140,7 @@ export default function Loans() {
                           <Link to={`/LoanDetail?id=${l.id}`} className="inline-flex items-center gap-1 text-xs text-[#d4a533] hover:underline">
                             <Eye className="w-3.5 h-3.5" /> Ver
                           </Link>
-                          <button onClick={() => { setDeletingLoan(l); setDeleteOpen(true); }} className="text-gray-600 hover:text-red-400 transition-colors p-1">
+                          <button onClick={() => { setDeletingLoan(l); setDeletePassword(''); setDeleteError(false); setDeleteOpen(true); }} className="text-gray-600 hover:text-red-400 transition-colors p-1">
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
@@ -154,17 +156,37 @@ export default function Loans() {
           </div>
         </div>
       )}
-      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+      <AlertDialog open={deleteOpen} onOpenChange={(open) => { setDeleteOpen(open); if (!open) { setDeletePassword(''); setDeleteError(false); } }}>
         <AlertDialogContent className="bg-[#111827] border-[#1e293b] text-gray-200">
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar préstamo?</AlertDialogTitle>
             <AlertDialogDescription className="text-gray-500">
-              Se eliminará el préstamo de <strong className="text-gray-300">{deletingLoan?.client_name}</strong> junto con todo su historial de pagos. Esta acción no se puede deshacer.
+              Se eliminará el préstamo de <strong className="text-gray-300">{deletingLoan?.client_name}</strong> junto con todo su historial de pagos. Ingrese la contraseña para confirmar.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          <div className="py-2">
+            <input
+              type="password"
+              value={deletePassword}
+              onChange={e => { setDeletePassword(e.target.value); setDeleteError(false); }}
+              placeholder="Contraseña"
+              className={`w-full px-3 py-2 rounded-lg bg-[#0a0e17] border text-gray-200 text-sm outline-none focus:ring-2 transition-all ${
+                deleteError ? 'border-red-500 focus:ring-red-500/30' : 'border-[#1e293b] focus:ring-[#d4a533]/30'
+              }`}
+            />
+            {deleteError && <p className="text-red-400 text-xs mt-1">Contraseña incorrecta</p>}
+          </div>
           <AlertDialogFooter>
             <AlertDialogCancel className="border-[#1e293b] text-gray-400 hover:bg-white/5">Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={() => deleteMutation.mutate(deletingLoan)} className="bg-red-600 hover:bg-red-700" disabled={deleteMutation.isPending}>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                if (deletePassword !== '3030') { setDeleteError(true); return; }
+                deleteMutation.mutate(deletingLoan);
+              }}
+              className="bg-red-600 hover:bg-red-700"
+              disabled={deleteMutation.isPending}
+            >
               {deleteMutation.isPending ? 'Eliminando...' : 'Eliminar'}
             </AlertDialogAction>
           </AlertDialogFooter>
