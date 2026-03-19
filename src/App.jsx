@@ -20,28 +20,27 @@ import Calculadora from '@/pages/Calculadora';
 function App() {
   return (
     <PasswordGate>
-    <QueryClientProvider client={queryClientInstance}>
-      <Router>
-        <Routes>
-          <Route element={<Layout />}>
-            <Route path="/" element={<Navigate to="/Dashboard" replace />} />
-            <Route path="/Dashboard" element={<Dashboard />} />
-            <Route path="/Clients" element={<Clients />} />
-            <Route path="/Loans" element={<Loans />} />
-            <Route path="/NewLoan" element={<NewLoan />} />
-            <Route path="/LoanDetail" element={<LoanDetail />} />
-            <Route path="/Payments" element={<Payments />} />
-            <Route path="/Reports" element={<Reports />} />
-            <Route path="/Alerts" element={<Alerts />} />
-            <Route path="/Caja" element={<Caja />} />
-            <Route path="/Calculadora" element={<Calculadora />} />
-          </Route>
-          <Route path="*" element={<PageNotFound />} />
-        </Routes>
-        <Toaster />
-      </Router>
-    </QueryClientProvider>
-  )
+      <QueryClientProvider client={queryClientInstance}>
+        <Router>
+          <Routes>
+            <Route element={<Layout />}>
+              <Route path="/" element={<Navigate to="/Dashboard" replace />} />
+              <Route path="/Dashboard" element={<Dashboard />} />
+              <Route path="/Clients" element={<Clients />} />
+              <Route path="/Loans" element={<Loans />} />
+              <Route path="/NewLoan" element={<NewLoan />} />
+              <Route path="/LoanDetail" element={<LoanDetail />} />
+              <Route path="/Payments" element={<Payments />} />
+              <Route path="/Reports" element={<Reports />} />
+              <Route path="/Alerts" element={<Alerts />} />
+              <Route path="/Caja" element={<Caja />} />
+              <Route path="/Calculadora" element={<Calculadora />} />
+            </Route>
+            <Route path="*" element={<PageNotFound />} />
+          </Routes>
+          <Toaster />
+        </Router>
+      </QueryClientProvider>
     </PasswordGate>
   )
 }
