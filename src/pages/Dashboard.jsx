@@ -32,6 +32,16 @@ export default function Dashboard() {
   const totalCollected = payments.reduce((s, p) => s + (p.amount || 0), 0);
   const totalInterest = loans.reduce((s, l) => s + (l.total_interest || 0), 0);
 
+  // Cálculo de mora acumulada por préstamos vencidos
+  const totalMora = overdueLoans.reduce((s, l) => {
+    if (!l.due_date || !l.late_interest || !l.remaining_balance) return s;
+    const dueDate = new Date(l.due_date);
+    const todayDate = new Date(today);
+    const daysOverdue = Math.max(0, Math.floor((todayDate - dueDate) / (1000 * 60 * 60 * 24)));
+    const graceUsed = Math.max(0, daysOverdue - (l.grace_days || 0));
+    return s + (graceUsed * (l.late_interest / 100) * l.remaining_balance);
+  }, 0);
+
   const statusData = [
     { name: 'Activos', value: activeLoans.length },
     { name: 'Pagados', value: paidLoans.length },
@@ -87,7 +97,12 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard icon={Users} label="Total Clientes" value={clients.length} color="purple" />
         <StatCard icon={TrendingUp} label="Intereses Generados" value={fmt(totalInterest)} color="pink" />
-        <StatCard icon={Clock} label="Saldo Pendiente" value={fmt(totalLent + totalInterest - totalCollected)} color="orange" />
+        <StatCard icon={Clock} label="Saldo Pendiente" value={fmt(totalLent + totalInterest - totalCollected + totalMora)} color="orange" />
+      </div>
+
+      {/* Mora */}
+      <div className="grid grid-cols-1 gap-4">
+        <StatCard icon={AlertTriangle} label="Mora Acumulada (Interés por Atraso)" value={fmt(totalMora)} color="red" trend={overdueLoans.length > 0 ? `${overdueLoans.length} préstamo(s) con atraso` : undefined} trendUp={false} />
       </div>
 
       {/* Charts */}
