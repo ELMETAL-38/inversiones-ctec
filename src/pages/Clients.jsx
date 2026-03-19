@@ -16,6 +16,8 @@ export default function Clients() {
   const [editingClient, setEditingClient] = useState(null);
   const [deletingClient, setDeletingClient] = useState(null);
   const [form, setForm] = useState({ first_name: '', last_name: '', phone: '', address: '', id_number: '', notes: '', photo_url: '' });
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteError, setDeleteError] = useState(false);
   const [uploading, setUploading] = useState(false);
 
   const queryClient = useQueryClient();
@@ -34,7 +36,7 @@ export default function Clients() {
   });
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.Client.delete(id),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['clients'] }); setDeleteOpen(false); toast.success('Cliente eliminado'); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['clients'] }); setDeleteOpen(false); setDeletePassword(''); setDeleteError(false); toast.success('Cliente eliminado'); },
   });
 
   const filtered = clients.filter(c => {
@@ -111,7 +113,7 @@ export default function Clients() {
                   <button onClick={() => openEdit(c)} className="p-1.5 rounded-lg hover:bg-white/5 text-gray-500 hover:text-[#d4a533]">
                     <Pencil className="w-3.5 h-3.5" />
                   </button>
-                  <button onClick={() => { setDeletingClient(c); setDeleteOpen(true); }} className="p-1.5 rounded-lg hover:bg-white/5 text-gray-500 hover:text-red-400">
+                  <button onClick={() => { setDeletingClient(c); setDeletePassword(''); setDeleteError(false); setDeleteOpen(true); }} className="p-1.5 rounded-lg hover:bg-white/5 text-gray-500 hover:text-red-400">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -183,17 +185,36 @@ export default function Clients() {
       </Dialog>
 
       {/* Delete Dialog */}
-      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+      <AlertDialog open={deleteOpen} onOpenChange={(open) => { setDeleteOpen(open); if (!open) { setDeletePassword(''); setDeleteError(false); } }}>
         <AlertDialogContent className="bg-[#111827] border-[#1e293b] text-gray-200">
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar cliente?</AlertDialogTitle>
             <AlertDialogDescription className="text-gray-500">
-              Se eliminará permanentemente a {deletingClient?.first_name} {deletingClient?.last_name}.
+              Se eliminará permanentemente a {deletingClient?.first_name} {deletingClient?.last_name}. Ingrese la contraseña para confirmar.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          <div className="py-2">
+            <input
+              type="password"
+              value={deletePassword}
+              onChange={e => { setDeletePassword(e.target.value); setDeleteError(false); }}
+              placeholder="Contraseña"
+              className={`w-full px-3 py-2 rounded-lg bg-[#0a0e17] border text-gray-200 text-sm outline-none focus:ring-2 transition-all ${
+                deleteError ? 'border-red-500 focus:ring-red-500/30' : 'border-[#1e293b] focus:ring-[#d4a533]/30'
+              }`}
+            />
+            {deleteError && <p className="text-red-400 text-xs mt-1">Contraseña incorrecta</p>}
+          </div>
           <AlertDialogFooter>
             <AlertDialogCancel className="border-[#1e293b] text-gray-400 hover:bg-white/5">Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={() => deleteMutation.mutate(deletingClient?.id)} className="bg-red-600 hover:bg-red-700">Eliminar</AlertDialogAction>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                if (deletePassword !== '3030') { setDeleteError(true); return; }
+                deleteMutation.mutate(deletingClient?.id);
+              }}
+              className="bg-red-600 hover:bg-red-700"
+            >Eliminar</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
