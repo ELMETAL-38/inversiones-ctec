@@ -204,6 +204,29 @@ export default function LoanDetail() {
         </div>
       </div>
 
+      {/* Sumatoria total */}
+      <div className="bg-gradient-to-r from-[#1a1f2e] to-[#111827] rounded-xl border border-[#d4a533]/30 p-5">
+        <p className="text-xs text-[#d4a533] font-semibold uppercase tracking-wider mb-4">Resumen Total del Préstamo</p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+          <div className="bg-[#0a0e17] rounded-lg p-3 border border-[#1e293b]">
+            <p className="text-xs text-gray-500 mb-1">Capital</p>
+            <p className="text-base font-bold text-blue-400">{fmt(loan.amount)}</p>
+          </div>
+          <div className="bg-[#0a0e17] rounded-lg p-3 border border-[#1e293b]">
+            <p className="text-xs text-gray-500 mb-1">Crédito (Interés)</p>
+            <p className="text-base font-bold text-[#d4a533]">{fmt(loan.total_interest)}</p>
+          </div>
+          <div className="bg-[#0a0e17] rounded-lg p-3 border border-red-500/20]">
+            <p className="text-xs text-gray-500 mb-1">Mora Acumulada</p>
+            <p className={`text-base font-bold ${mora > 0 ? 'text-red-400' : 'text-gray-500'}`}>{fmt(mora)}</p>
+          </div>
+          <div className="bg-[#d4a533]/10 rounded-lg p-3 border border-[#d4a533]/40">
+            <p className="text-xs text-[#d4a533] mb-1 font-semibold">TOTAL ADEUDADO</p>
+            <p className="text-base font-bold text-white">{fmt((loan.remaining_balance || 0) + mora)}</p>
+          </div>
+        </div>
+      </div>
+
       {/* Progress */}
       <div className="bg-[#111827] rounded-xl border border-[#1e293b] p-5">
         <div className="flex items-center justify-between mb-2">
