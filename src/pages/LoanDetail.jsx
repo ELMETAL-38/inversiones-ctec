@@ -156,6 +156,16 @@ export default function LoanDetail() {
   const fmt = (n) => new Intl.NumberFormat('es-DO', { style: 'currency', currency: 'DOP' }).format(n || 0);
   const progress = loan.total_to_pay ? ((loan.total_paid || 0) / loan.total_to_pay) * 100 : 0;
 
+  const today = new Date().toISOString().split('T')[0];
+  const mora = (() => {
+    if (!loan.due_date || !loan.late_interest || !loan.remaining_balance || loan.status === 'paid') return 0;
+    const dueDate = new Date(loan.due_date);
+    const todayDate = new Date(today);
+    const daysOverdue = Math.max(0, Math.floor((todayDate - dueDate) / (1000 * 60 * 60 * 24)));
+    const graceUsed = Math.max(0, daysOverdue - (loan.grace_days || 0));
+    return graceUsed * (loan.late_interest / 100) * loan.remaining_balance;
+  })();
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex items-center gap-3">
@@ -170,7 +180,7 @@ export default function LoanDetail() {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
         <div className="bg-[#111827] rounded-xl border border-[#1e293b] p-4 text-center">
           <p className="text-xs text-gray-500">Monto</p>
           <p className="text-lg font-bold text-gray-200 mt-1">{fmt(loan.amount)}</p>
@@ -186,6 +196,11 @@ export default function LoanDetail() {
         <div className="bg-[#111827] rounded-xl border border-[#1e293b] p-4 text-center">
           <p className="text-xs text-gray-500">Saldo</p>
           <p className="text-lg font-bold text-red-400 mt-1">{fmt(loan.remaining_balance)}</p>
+        </div>
+        <div className={`rounded-xl border p-4 text-center ${mora > 0 ? 'bg-red-500/10 border-red-500/30' : 'bg-[#111827] border-[#1e293b]'}`}>
+          <p className="text-xs text-gray-500">Mora Acumulada</p>
+          <p className={`text-lg font-bold mt-1 ${mora > 0 ? 'text-red-400' : 'text-gray-500'}`}>{fmt(mora)}</p>
+          {mora > 0 && <p className="text-xs text-red-400/70 mt-0.5">+ al saldo</p>}
         </div>
       </div>
 
