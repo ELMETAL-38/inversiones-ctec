@@ -104,6 +104,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 gap-4">
         <StatCard icon={AlertTriangle} label="Mora Acumulada (Interés por Atraso)" value={fmt(totalMora)} color="red" trend={overdueLoans.length > 0 ? `${overdueLoans.length} préstamo(s) con atraso` : undefined} trendUp={false} />
       </div>
+      </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
