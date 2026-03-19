@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-d
 import PageNotFound from './lib/PageNotFound';
 
 import Layout from '@/components/Layout';
+import PasswordGate from '@/components/PasswordGate';
 import Dashboard from '@/pages/Dashboard';
 import Clients from '@/pages/Clients';
 import Loans from '@/pages/Loans';
@@ -18,6 +19,7 @@ import Calculadora from '@/pages/Calculadora';
 
 function App() {
   return (
+    <PasswordGate>
     <QueryClientProvider client={queryClientInstance}>
       <Router>
         <Routes>
@@ -39,6 +41,8 @@ function App() {
         <Toaster />
       </Router>
     </QueryClientProvider>
+  )
+    </PasswordGate>
   )
 }
 
