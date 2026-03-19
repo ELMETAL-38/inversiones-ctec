@@ -101,7 +101,7 @@ export default function Loans() {
                   <th className="text-right p-3 font-medium">Total</th>
                   <th className="text-right p-3 font-medium">Pagado</th>
                   <th className="text-right p-3 font-medium">Saldo</th>
-                  <th className="text-center p-3 font-medium">Cuotas</th>
+                  <th className="text-right p-3 font-medium text-red-400">Mora</th>
                   <th className="text-center p-3 font-medium">Estado</th>
                   <th className="text-center p-3 font-medium">Acciones</th>
                 </tr>
@@ -110,6 +110,14 @@ export default function Loans() {
                 {filtered.map(l => {
                   let status = l.status;
                   if (status === 'active' && l.due_date && l.due_date < today) status = 'overdue';
+                  const mora = (() => {
+                    if (!l.due_date || !l.late_interest || !l.remaining_balance || l.status === 'paid') return 0;
+                    const dueDate = new Date(l.due_date);
+                    const todayDate = new Date(today);
+                    const daysOverdue = Math.max(0, Math.floor((todayDate - dueDate) / (1000 * 60 * 60 * 24)));
+                    const graceUsed = Math.max(0, daysOverdue - (l.grace_days || 0));
+                    return graceUsed * (l.late_interest / 100) * l.remaining_balance;
+                  })();
                   return (
                     <tr key={l.id} className="border-b border-[#1e293b]/50 hover:bg-white/[0.02]">
                       <td className="p-3 font-medium text-gray-200">{l.client_name || '—'}</td>
@@ -117,7 +125,7 @@ export default function Loans() {
                       <td className="p-3 text-right text-gray-300">{fmt(l.total_to_pay)}</td>
                       <td className="p-3 text-right text-emerald-400">{fmt(l.total_paid)}</td>
                       <td className="p-3 text-right text-[#d4a533]">{fmt(l.remaining_balance)}</td>
-                      <td className="p-3 text-center text-gray-400">{l.num_installments}</td>
+                      <td className={`p-3 text-right font-medium ${mora > 0 ? 'text-red-400' : 'text-gray-600'}`}>{mora > 0 ? fmt(mora) : '—'}</td>
                       <td className="p-3 text-center">
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[status]}`}>
                           {STATUS_TEXT[status]}
@@ -137,7 +145,7 @@ export default function Loans() {
                   );
                 })}
                 {filtered.length === 0 && (
-                  <tr><td colSpan={8} className="text-center py-12 text-gray-600">No hay préstamos</td></tr>
+                  <tr><td colSpan={9} className="text-center py-12 text-gray-600">No hay préstamos</td></tr>
                 )}
               </tbody>
             </table>
