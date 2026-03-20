@@ -10,11 +10,15 @@ const colorMap = {
   orange:  { bg: 'rgba(249,115,22,0.15)',  border: '1px solid rgba(249,115,22,0.3)',  icon: '#f97316' },
 };
 
-export default function StatCard({ icon: Icon, label, value, trend, trendUp, color = "gold" }) {
+export default function StatCard({ icon: Icon, label, value, trend, trendUp, color = "gold", onClick }) {
   const c = colorMap[color] || colorMap.gold;
 
   return (
-    <div style={{ background: c.bg, border: c.border }} className="rounded-xl p-5 relative overflow-hidden">
+    <div
+      style={{ background: c.bg, border: c.border }}
+      className={`rounded-xl p-5 relative overflow-hidden ${onClick ? 'cursor-pointer hover:brightness-110 transition-all' : ''}`}
+      onClick={onClick}
+    >
       <div className="absolute top-0 right-0 w-24 h-24 bg-white/[0.02] rounded-full -translate-y-8 translate-x-8" />
       <div className="flex items-start justify-between">
         <div>
