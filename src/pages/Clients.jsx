@@ -18,6 +18,10 @@ export default function Clients() {
   const [form, setForm] = useState({ first_name: '', last_name: '', phone: '', address: '', id_number: '', notes: '', photo_url: '' });
   const [deletePassword, setDeletePassword] = useState('');
   const [deleteError, setDeleteError] = useState(false);
+  const [editPasswordOpen, setEditPasswordOpen] = useState(false);
+  const [editPassword, setEditPassword] = useState('');
+  const [editPasswordError, setEditPasswordError] = useState(false);
+  const [pendingEditClient, setPendingEditClient] = useState(null);
   const [uploading, setUploading] = useState(false);
 
   const queryClient = useQueryClient();
@@ -110,7 +114,7 @@ export default function Clients() {
                   </div>
                 </div>
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={() => openEdit(c)} className="p-1.5 rounded-lg hover:bg-white/5 text-gray-500 hover:text-[#d4a533]">
+                  <button onClick={() => { setPendingEditClient(c); setEditPassword(''); setEditPasswordError(false); setEditPasswordOpen(true); }} className="p-1.5 rounded-lg hover:bg-white/5 text-gray-500 hover:text-[#d4a533]">
                     <Pencil className="w-3.5 h-3.5" />
                   </button>
                   <button onClick={() => { setDeletingClient(c); setDeletePassword(''); setDeleteError(false); setDeleteOpen(true); }} className="p-1.5 rounded-lg hover:bg-white/5 text-gray-500 hover:text-red-400">
@@ -183,6 +187,43 @@ export default function Clients() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Edit Password Dialog */}
+      <AlertDialog open={editPasswordOpen} onOpenChange={(open) => { setEditPasswordOpen(open); if (!open) { setEditPassword(''); setEditPasswordError(false); } }}>
+        <AlertDialogContent className="bg-[#111827] border-[#1e293b] text-gray-200">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Verificar acceso</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-500">
+              Ingrese la contraseña para editar a <strong className="text-gray-300">{pendingEditClient?.first_name} {pendingEditClient?.last_name}</strong>.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-2">
+            <input
+              type="password"
+              value={editPassword}
+              onChange={e => { setEditPassword(e.target.value); setEditPasswordError(false); }}
+              placeholder="Contraseña"
+              autoFocus
+              className={`w-full px-3 py-2 rounded-lg bg-[#0a0e17] border text-gray-200 text-sm outline-none focus:ring-2 transition-all ${
+                editPasswordError ? 'border-red-500 focus:ring-red-500/30' : 'border-[#1e293b] focus:ring-[#d4a533]/30'
+              }`}
+            />
+            {editPasswordError && <p className="text-red-400 text-xs mt-1">Contraseña incorrecta</p>}
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-[#1e293b] text-gray-400 hover:bg-white/5">Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                if (editPassword !== '3030') { setEditPasswordError(true); return; }
+                setEditPasswordOpen(false);
+                openEdit(pendingEditClient);
+              }}
+              className="bg-[#d4a533] hover:bg-[#b8922d] text-black font-semibold"
+            >Continuar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Delete Dialog */}
       <AlertDialog open={deleteOpen} onOpenChange={(open) => { setDeleteOpen(open); if (!open) { setDeletePassword(''); setDeleteError(false); } }}>
