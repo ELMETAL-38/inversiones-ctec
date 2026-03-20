@@ -6,11 +6,12 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pi
 import StatCard from '@/components/dashboard/StatCard';
 import { format, isAfter, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const COLORS = ['#d4a533', '#10b981', '#3b82f6', '#ef4444'];
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const { data: loans = [], isLoading: loansLoading } = useQuery({
     queryKey: ['loans'],
     queryFn: () => base44.entities.Loan.list('-created_date', 200),
@@ -87,22 +88,22 @@ export default function Dashboard() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={HandCoins} label="Préstamos Activos" value={activeLoans.length} color="emerald" />
-        <StatCard icon={DollarSign} label="Total Prestado" value={fmt(totalLent)} color="blue" />
-        <StatCard icon={TrendingUp} label="Total Cobrado" value={fmt(totalCollected)} color="gold" />
-        <StatCard icon={AlertTriangle} label="Vencidos" value={overdueLoans.length} color="red" />
+        <StatCard icon={HandCoins} label="Préstamos Activos" value={activeLoans.length} color="emerald" onClick={() => navigate('/Loans')} />
+        <StatCard icon={DollarSign} label="Total Prestado" value={fmt(totalLent)} color="blue" onClick={() => navigate('/Loans')} />
+        <StatCard icon={TrendingUp} label="Total Cobrado" value={fmt(totalCollected)} color="gold" onClick={() => navigate('/Payments')} />
+        <StatCard icon={AlertTriangle} label="Vencidos" value={overdueLoans.length} color="red" onClick={() => navigate('/Alerts')} />
       </div>
 
       {/* Secondary stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <StatCard icon={Users} label="Total Clientes" value={clients.length} color="purple" />
-        <StatCard icon={TrendingUp} label="Intereses Generados" value={fmt(totalInterest)} color="pink" />
-        <StatCard icon={Clock} label="Saldo Pendiente" value={fmt(totalLent + totalInterest - totalCollected + totalMora)} color="orange" />
+        <StatCard icon={Users} label="Total Clientes" value={clients.length} color="purple" onClick={() => navigate('/Clients')} />
+        <StatCard icon={TrendingUp} label="Intereses Generados" value={fmt(totalInterest)} color="pink" onClick={() => navigate('/Reports')} />
+        <StatCard icon={Clock} label="Saldo Pendiente" value={fmt(totalLent + totalInterest - totalCollected + totalMora)} color="orange" onClick={() => navigate('/Caja')} />
       </div>
 
       {/* Mora */}
       <div className="grid grid-cols-1 gap-4">
-        <StatCard icon={AlertTriangle} label="Mora Acumulada (Interés por Atraso)" value={fmt(totalMora)} color="red" trend={overdueLoans.length > 0 ? `${overdueLoans.length} préstamo(s) con atraso` : undefined} trendUp={false} />
+        <StatCard icon={AlertTriangle} label="Mora Acumulada (Interés por Atraso)" value={fmt(totalMora)} color="red" trend={overdueLoans.length > 0 ? `${overdueLoans.length} préstamo(s) con atraso` : undefined} trendUp={false} onClick={() => navigate('/Alerts')} />
       </div>
 
       {/* Charts */}
