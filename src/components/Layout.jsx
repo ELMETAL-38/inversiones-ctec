@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, Users, HandCoins, FileText, BarChart3, 
-  Bell, Menu, X, ChevronRight, LogOut, Wallet, Calculator
+  Bell, Menu, X, ChevronRight, LogOut, Wallet, Calculator, RefreshCw
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
@@ -108,8 +108,11 @@ export default function Layout() {
           </button>
           <div className="flex-1" />
           <div className="flex items-center gap-2">
+            <button onClick={() => window.location.reload()} title="Actualizar" className="p-2 rounded-lg hover:bg-white/5 transition-colors text-gray-400 hover:text-[#d4a533]">
+              <RefreshCw className="w-4 h-4" />
+            </button>
             <Link to="/Alerts" className="relative p-2 rounded-lg hover:bg-white/5 transition-colors">
-              <Bell className="w-4.5 h-4.5 text-gray-400" />
+              <Bell className="w-4 h-4 text-gray-400" />
             </Link>
           </div>
         </header>
