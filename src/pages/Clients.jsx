@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Search, Pencil, Trash2, User, Phone, MapPin, IdCard, X } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, User, Phone, MapPin, IdCard, X, HandCoins } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -23,11 +23,18 @@ export default function Clients() {
   const [editPasswordError, setEditPasswordError] = useState(false);
   const [pendingEditClient, setPendingEditClient] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [loansClient, setLoansClient] = useState(null);
 
   const queryClient = useQueryClient();
   const { data: clients = [], isLoading } = useQuery({
     queryKey: ['clients'],
     queryFn: () => base44.entities.Client.list('-created_date', 200),
+  });
+
+  const { data: clientLoans = [] } = useQuery({
+    queryKey: ['client-loans', loansClient?.id],
+    queryFn: () => base44.entities.Loan.filter({ client_id: loansClient.id }, '-created_date', 100),
+    enabled: !!loansClient,
   });
 
   const createMutation = useMutation({
@@ -43,12 +50,24 @@ export default function Clients() {
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['clients'] }); setDeleteOpen(false); setDeletePassword(''); setDeleteError(false); toast.success('Cliente eliminado'); },
   });
 
+  const today = new Date().toISOString().split('T')[0];
+  const fmt = (n) => new Intl.NumberFormat('es-DO', { style: 'currency', currency: 'DOP' }).format(n || 0);
+
+  const STATUS_COLOR = {
+    active: 'bg-emerald-500/10 text-emerald-400',
+    paid: 'bg-blue-500/10 text-blue-400',
+    overdue: 'bg-red-500/10 text-red-400',
+    defaulted: 'bg-orange-500/10 text-orange-400',
+  };
+  const STATUS_TEXT = { active: 'Activo', paid: 'Pagado', overdue: 'Vencido', defaulted: 'Moroso' };
+
   const filtered = clients.filter(c => {
     const q = search.toLowerCase();
     return `${c.first_name} ${c.last_name} ${c.id_number} ${c.phone}`.toLowerCase().includes(q);
   });
 
   const openNew = () => { setEditingClient(null); setForm({ first_name: '', last_name: '', phone: '', address: '', id_number: '', notes: '', photo_url: '' }); setDialogOpen(true); };
+
   const openEdit = (c) => { setEditingClient(c); setForm({ first_name: c.first_name, last_name: c.last_name, phone: c.phone || '', address: c.address || '', id_number: c.id_number, notes: c.notes || '', photo_url: c.photo_url || '' }); setDialogOpen(true); };
 
   const handleSubmit = (e) => {
@@ -114,6 +133,9 @@ export default function Clients() {
                   </div>
                 </div>
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button onClick={() => setLoansClient(c)} title="Ver préstamos" className="p-1.5 rounded-lg hover:bg-white/5 text-gray-500 hover:text-blue-400">
+                    <HandCoins className="w-3.5 h-3.5" />
+                  </button>
                   <button onClick={() => { setPendingEditClient(c); setEditPassword(''); setEditPasswordError(false); setEditPasswordOpen(true); }} className="p-1.5 rounded-lg hover:bg-white/5 text-gray-500 hover:text-[#d4a533]">
                     <Pencil className="w-3.5 h-3.5" />
                   </button>
@@ -136,6 +158,41 @@ export default function Clients() {
           )}
         </div>
       )}
+
+      {/* Loans Dialog */}
+      <Dialog open={!!loansClient} onOpenChange={(open) => { if (!open) setLoansClient(null); }}>
+        <DialogContent className="bg-[#111827] border-[#1e293b] text-gray-200 max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Préstamos — {loansClient?.first_name} {loansClient?.last_name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 max-h-[60vh] overflow-y-auto">
+            {clientLoans.length === 0 ? (
+              <p className="text-center text-gray-600 py-8 text-sm">Sin préstamos registrados</p>
+            ) : (
+              clientLoans.map(loan => {
+                let status = loan.status;
+                if (status === 'active' && loan.due_date && loan.due_date < today) status = 'overdue';
+                return (
+                  <div key={loan.id} className="bg-[#0a0e17] rounded-lg border border-[#1e293b] p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-semibold text-gray-200">{fmt(loan.amount)}</span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLOR[status] || 'bg-gray-500/10 text-gray-400'}`}>
+                        {STATUS_TEXT[status] || status}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-1 text-xs text-gray-500">
+                      <span>Total a pagar: <span className="text-[#d4a533]">{fmt(loan.total_to_pay)}</span></span>
+                      <span>Pagado: <span className="text-emerald-400">{fmt(loan.total_paid)}</span></span>
+                      <span>Saldo: <span className="text-red-400">{fmt(loan.remaining_balance)}</span></span>
+                      <span>Vence: <span className="text-gray-300">{loan.due_date || '—'}</span></span>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
