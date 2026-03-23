@@ -24,7 +24,7 @@ export default function LoanDetail() {
 
   const { data: loan, isLoading } = useQuery({
     queryKey: ['loan', loanId],
-    queryFn: () => base44.entities.Loan.list().then(list => list.find(l => l.id === loanId)),
+    queryFn: () => base44.entities.Loan.filter({ id: loanId }).then(r => r[0]),
     enabled: !!loanId,
   });
 
