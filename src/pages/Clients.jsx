@@ -163,34 +163,78 @@ export default function Clients() {
       <Dialog open={!!loansClient} onOpenChange={(open) => { if (!open) setLoansClient(null); }}>
         <DialogContent className="bg-[#111827] border-[#1e293b] text-gray-200 max-w-lg">
           <DialogHeader>
-            <DialogTitle>Préstamos — {loansClient?.first_name} {loansClient?.last_name}</DialogTitle>
+            <DialogTitle>Ficha del Cliente</DialogTitle>
           </DialogHeader>
-          <div className="space-y-2 max-h-[60vh] overflow-y-auto">
-            {clientLoans.length === 0 ? (
-              <p className="text-center text-gray-600 py-8 text-sm">Sin préstamos registrados</p>
-            ) : (
-              clientLoans.map(loan => {
-                let status = loan.status;
-                if (status === 'active' && loan.due_date && loan.due_date < today) status = 'overdue';
-                return (
-                  <div key={loan.id} className="bg-[#0a0e17] rounded-lg border border-[#1e293b] p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-semibold text-gray-200">{fmt(loan.amount)}</span>
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLOR[status] || 'bg-gray-500/10 text-gray-400'}`}>
-                        {STATUS_TEXT[status] || status}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-1 text-xs text-gray-500">
-                      <span>Total a pagar: <span className="text-[#d4a533]">{fmt(loan.total_to_pay)}</span></span>
-                      <span>Pagado: <span className="text-emerald-400">{fmt(loan.total_paid)}</span></span>
-                      <span>Saldo: <span className="text-red-400">{fmt(loan.remaining_balance)}</span></span>
-                      <span>Vence: <span className="text-gray-300">{loan.due_date || '—'}</span></span>
-                    </div>
+          {loansClient && (
+            <div className="space-y-4">
+              {/* Client details */}
+              <div className="flex items-start gap-4 bg-[#0a0e17] rounded-xl border border-[#1e293b] p-4">
+                {loansClient.photo_url ? (
+                  <img src={loansClient.photo_url} alt="" className="w-16 h-16 rounded-full object-cover border-2 border-[#d4a533]/30 shrink-0" />
+                ) : (
+                  <div className="w-16 h-16 rounded-full bg-[#d4a533]/10 flex items-center justify-center shrink-0">
+                    <User className="w-7 h-7 text-[#d4a533]" />
                   </div>
-                );
-              })
-            )}
-          </div>
+                )}
+                <div className="flex-1 space-y-1.5">
+                  <h3 className="text-base font-bold text-gray-100">{loansClient.first_name} {loansClient.last_name}</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-xs text-gray-400">
+                    <div className="flex items-center gap-1.5"><IdCard className="w-3 h-3 text-gray-600" /> {loansClient.id_number}</div>
+                    {loansClient.phone && <div className="flex items-center gap-1.5"><Phone className="w-3 h-3 text-gray-600" /> {loansClient.phone}</div>}
+                    {loansClient.address && <div className="flex items-center gap-1.5 col-span-2"><MapPin className="w-3 h-3 text-gray-600" /> {loansClient.address}</div>}
+                  </div>
+                  {loansClient.notes && <p className="text-xs text-gray-500 italic mt-1">{loansClient.notes}</p>}
+                </div>
+              </div>
+
+              {/* Summary counts */}
+              <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                <div className="bg-emerald-500/10 rounded-lg border border-emerald-500/20 p-2">
+                  <p className="text-lg font-bold text-emerald-400">{clientLoans.filter(l => l.status === 'active' && !(l.due_date && l.due_date < today)).length}</p>
+                  <p className="text-gray-500">Activos</p>
+                </div>
+                <div className="bg-red-500/10 rounded-lg border border-red-500/20 p-2">
+                  <p className="text-lg font-bold text-red-400">{clientLoans.filter(l => (l.status === 'active' || l.status === 'overdue') && l.due_date && l.due_date < today).length}</p>
+                  <p className="text-gray-500">Vencidos</p>
+                </div>
+                <div className="bg-blue-500/10 rounded-lg border border-blue-500/20 p-2">
+                  <p className="text-lg font-bold text-blue-400">{clientLoans.filter(l => l.status === 'paid').length}</p>
+                  <p className="text-gray-500">Pagados</p>
+                </div>
+              </div>
+
+              {/* Loans list */}
+              <div className="space-y-2 max-h-[40vh] overflow-y-auto">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Historial de Préstamos</p>
+                {clientLoans.length === 0 ? (
+                  <p className="text-center text-gray-600 py-6 text-sm">Sin préstamos registrados</p>
+                ) : (
+                  clientLoans.map(loan => {
+                    let status = loan.status;
+                    if (status === 'active' && loan.due_date && loan.due_date < today) status = 'overdue';
+                    return (
+                      <div key={loan.id} className="bg-[#0a0e17] rounded-lg border border-[#1e293b] p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-semibold text-gray-200">{fmt(loan.amount)}</span>
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLOR[status] || 'bg-gray-500/10 text-gray-400'}`}>
+                            {STATUS_TEXT[status] || status}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-1 text-xs text-gray-500">
+                          <span>Total a pagar: <span className="text-[#d4a533]">{fmt(loan.total_to_pay)}</span></span>
+                          <span>Pagado: <span className="text-emerald-400">{fmt(loan.total_paid)}</span></span>
+                          <span>Saldo: <span className="text-red-400">{fmt(loan.remaining_balance)}</span></span>
+                          <span>Vence: <span className="text-gray-300">{loan.due_date || '—'}</span></span>
+                          <span>Cuotas: <span className="text-gray-300">{loan.num_installments}</span></span>
+                          <span>Tasa: <span className="text-gray-300">{loan.interest_rate}%</span></span>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
