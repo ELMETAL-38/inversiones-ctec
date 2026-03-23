@@ -188,7 +188,7 @@ export default function Clients() {
               </div>
 
               {/* Summary counts */}
-              <div className="grid grid-cols-3 gap-2 text-center text-xs">
+              <div className="grid grid-cols-4 gap-2 text-center text-xs">
                 <div className="bg-emerald-500/10 rounded-lg border border-emerald-500/20 p-2">
                   <p className="text-lg font-bold text-emerald-400">{clientLoans.filter(l => l.status === 'active' && !(l.due_date && l.due_date < today)).length}</p>
                   <p className="text-gray-500">Activos</p>
@@ -200,6 +200,17 @@ export default function Clients() {
                 <div className="bg-blue-500/10 rounded-lg border border-blue-500/20 p-2">
                   <p className="text-lg font-bold text-blue-400">{clientLoans.filter(l => l.status === 'paid').length}</p>
                   <p className="text-gray-500">Pagados</p>
+                </div>
+                <div className="bg-orange-500/10 rounded-lg border border-orange-500/20 p-2">
+                  <p className="text-lg font-bold text-orange-400">
+                    {fmt(clientLoans.reduce((s, loan) => {
+                      if (!loan.due_date || !loan.late_interest || !loan.remaining_balance || loan.status === 'paid') return s;
+                      const days = Math.max(0, Math.floor((new Date(today) - new Date(loan.due_date)) / (1000 * 60 * 60 * 24)));
+                      const grace = Math.max(0, days - (loan.grace_days || 0));
+                      return s + grace * (loan.late_interest / 100) * loan.remaining_balance;
+                    }, 0))}
+                  </p>
+                  <p className="text-gray-500">Mora</p>
                 </div>
               </div>
 
