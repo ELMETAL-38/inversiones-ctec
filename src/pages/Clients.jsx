@@ -212,6 +212,12 @@ export default function Clients() {
                   clientLoans.map(loan => {
                     let status = loan.status;
                     if (status === 'active' && loan.due_date && loan.due_date < today) status = 'overdue';
+                    const mora = (() => {
+                      if (!loan.due_date || !loan.late_interest || !loan.remaining_balance || loan.status === 'paid') return 0;
+                      const daysOverdue = Math.max(0, Math.floor((new Date(today) - new Date(loan.due_date)) / (1000 * 60 * 60 * 24)));
+                      const graceUsed = Math.max(0, daysOverdue - (loan.grace_days || 0));
+                      return graceUsed * (loan.late_interest / 100) * loan.remaining_balance;
+                    })();
                     return (
                       <div key={loan.id} className="bg-[#0a0e17] rounded-lg border border-[#1e293b] p-4">
                         <div className="flex items-center justify-between mb-2">
@@ -228,6 +234,7 @@ export default function Clients() {
                           <span>Inicio: <span className="text-gray-300">{loan.start_date || '—'}</span></span>
                           <span>Cuotas: <span className="text-gray-300">{loan.num_installments}</span></span>
                           <span>Tasa: <span className="text-gray-300">{loan.interest_rate}%</span></span>
+                          <span className={mora > 0 ? 'text-red-400 font-semibold' : ''}>Mora: <span>{mora > 0 ? fmt(mora) : '—'}</span></span>
                         </div>
                       </div>
                     );
