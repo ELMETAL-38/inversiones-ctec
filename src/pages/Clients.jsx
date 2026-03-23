@@ -197,10 +197,6 @@ export default function Clients() {
                   <p className="text-lg font-bold text-red-400">{clientLoans.filter(l => (l.status === 'active' || l.status === 'overdue') && l.due_date && l.due_date < today).length}</p>
                   <p className="text-gray-500">Vencidos</p>
                 </div>
-                <div className="bg-blue-500/10 rounded-lg border border-blue-500/20 p-2">
-                  <p className="text-lg font-bold text-blue-400">{clientLoans.filter(l => l.status === 'paid').length}</p>
-                  <p className="text-gray-500">Pagados</p>
-                </div>
                 <div className="bg-orange-500/10 rounded-lg border border-orange-500/20 p-2">
                   <p className="text-lg font-bold text-orange-400">
                     {fmt(clientLoans.reduce((s, loan) => {
@@ -211,6 +207,10 @@ export default function Clients() {
                     }, 0))}
                   </p>
                   <p className="text-gray-500">Mora</p>
+                </div>
+                <div className="bg-blue-500/10 rounded-lg border border-blue-500/20 p-2">
+                  <p className="text-lg font-bold text-blue-400">{clientLoans.filter(l => l.status === 'paid').length}</p>
+                  <p className="text-gray-500">Pagados</p>
                 </div>
               </div>
 
