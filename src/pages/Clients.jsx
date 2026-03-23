@@ -239,10 +239,20 @@ export default function Clients() {
                             <button onClick={() => { setLoansClient(null); navigate(`/LoanDetail?id=${loan.id}`); }} className="flex items-center gap-1 text-xs text-[#d4a533] hover:underline">
                               <Eye className="w-3.5 h-3.5" /> Ver
                             </button>
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLOR[status] || 'bg-gray-500/10 text-gray-400'}`}>
-                            {STATUS_TEXT[status] || status}
-                          </span>
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLOR[status] || 'bg-gray-500/10 text-gray-400'}`}>
+                              {STATUS_TEXT[status] || status}
+                            </span>
                           </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-1 text-xs text-gray-500">
+                          <span>Total a pagar: <span className="text-[#d4a533]">{fmt(loan.total_to_pay)}</span></span>
+                          <span>Pagado: <span className="text-emerald-400">{fmt(loan.total_paid)}</span></span>
+                          <span>Saldo: <span className="text-red-400">{fmt(loan.remaining_balance)}</span></span>
+                          <span>Vence: <span className="text-gray-300">{loan.due_date || '—'}</span></span>
+                          <span>Inicio: <span className="text-gray-300">{loan.start_date || '—'}</span></span>
+                          <span>Cuotas: <span className="text-gray-300">{loan.num_installments}</span></span>
+                          <span>Tasa: <span className="text-gray-300">{loan.interest_rate}%</span></span>
+                          <span className={mora > 0 ? 'text-red-400 font-semibold' : ''}>Mora: <span>{mora > 0 ? fmt(mora) : '—'}</span></span>
                         </div>
                       </div>
                     );
