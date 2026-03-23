@@ -24,6 +24,7 @@ export default function Clients() {
   const [pendingEditClient, setPendingEditClient] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [loansClient, setLoansClient] = useState(null);
+  const [loansDialogOpen, setLoansDialogOpen] = useState(false);
 
   const queryClient = useQueryClient();
   const { data: clients = [], isLoading } = useQuery({
@@ -34,7 +35,7 @@ export default function Clients() {
   const { data: clientLoans = [] } = useQuery({
     queryKey: ['client-loans', loansClient?.id],
     queryFn: () => base44.entities.Loan.filter({ client_id: loansClient.id }, '-created_date', 100),
-    enabled: !!loansClient,
+    enabled: !!loansClient?.id,
   });
 
   const createMutation = useMutation({
@@ -133,7 +134,7 @@ export default function Clients() {
                   </div>
                 </div>
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={() => setLoansClient(c)} title="Ver préstamos" className="p-1.5 rounded-lg hover:bg-white/5 text-gray-500 hover:text-blue-400">
+                  <button onClick={() => { setLoansClient(c); setLoansDialogOpen(true); }} title="Ver préstamos" className="p-1.5 rounded-lg hover:bg-white/5 text-gray-500 hover:text-blue-400">
                     <HandCoins className="w-3.5 h-3.5" />
                   </button>
                   <button onClick={() => { setPendingEditClient(c); setEditPassword(''); setEditPasswordError(false); setEditPasswordOpen(true); }} className="p-1.5 rounded-lg hover:bg-white/5 text-gray-500 hover:text-[#d4a533]">
@@ -160,7 +161,7 @@ export default function Clients() {
       )}
 
       {/* Loans Dialog */}
-      <Dialog open={!!loansClient} onOpenChange={(open) => { if (!open) setLoansClient(null); }}>
+      <Dialog open={loansDialogOpen} onOpenChange={(open) => { setLoansDialogOpen(open); if (!open) setLoansClient(null); }}>
         <DialogContent className="bg-[#111827] border-[#1e293b] text-gray-200 max-w-lg">
           <DialogHeader>
             <DialogTitle>Préstamos — {loansClient?.first_name} {loansClient?.last_name}</DialogTitle>
