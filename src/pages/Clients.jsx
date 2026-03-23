@@ -225,6 +225,7 @@ export default function Clients() {
                           <span>Pagado: <span className="text-emerald-400">{fmt(loan.total_paid)}</span></span>
                           <span>Saldo: <span className="text-red-400">{fmt(loan.remaining_balance)}</span></span>
                           <span>Vence: <span className="text-gray-300">{loan.due_date || '—'}</span></span>
+                          <span>Inicio: <span className="text-gray-300">{loan.start_date || '—'}</span></span>
                           <span>Cuotas: <span className="text-gray-300">{loan.num_installments}</span></span>
                           <span>Tasa: <span className="text-gray-300">{loan.interest_rate}%</span></span>
                         </div>
