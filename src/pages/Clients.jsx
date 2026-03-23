@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Search, Pencil, Trash2, User, Phone, MapPin, IdCard, X, HandCoins } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, User, Phone, MapPin, IdCard, X, HandCoins, Eye } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,6 +11,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { toast } from 'sonner';
 
 export default function Clients() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -233,19 +235,14 @@ export default function Clients() {
                       <div key={loan.id} className="bg-[#0a0e17] rounded-lg border border-[#1e293b] p-4">
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-sm font-semibold text-gray-200">{fmt(loan.amount)}</span>
+                          <div className="flex items-center gap-2">
+                            <button onClick={() => { setLoansClient(null); navigate(`/LoanDetail?id=${loan.id}`); }} className="flex items-center gap-1 text-xs text-[#d4a533] hover:underline">
+                              <Eye className="w-3.5 h-3.5" /> Ver
+                            </button>
                           <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLOR[status] || 'bg-gray-500/10 text-gray-400'}`}>
                             {STATUS_TEXT[status] || status}
                           </span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-1 text-xs text-gray-500">
-                          <span>Total a pagar: <span className="text-[#d4a533]">{fmt(loan.total_to_pay)}</span></span>
-                          <span>Pagado: <span className="text-emerald-400">{fmt(loan.total_paid)}</span></span>
-                          <span>Saldo: <span className="text-red-400">{fmt(loan.remaining_balance)}</span></span>
-                          <span>Vence: <span className="text-gray-300">{loan.due_date || '—'}</span></span>
-                          <span>Inicio: <span className="text-gray-300">{loan.start_date || '—'}</span></span>
-                          <span>Cuotas: <span className="text-gray-300">{loan.num_installments}</span></span>
-                          <span>Tasa: <span className="text-gray-300">{loan.interest_rate}%</span></span>
-                          <span className={mora > 0 ? 'text-red-400 font-semibold' : ''}>Mora: <span>{mora > 0 ? fmt(mora) : '—'}</span></span>
+                          </div>
                         </div>
                       </div>
                     );
