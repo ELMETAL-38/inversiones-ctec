@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Plus, Search, Eye, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,6 +19,7 @@ const STATUS_COLORS = {
 const STATUS_TEXT = { active: 'Activo', paid: 'Pagado', overdue: 'Vencido', defaulted: 'Moroso' };
 
 export default function Loans() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState('all');
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -137,9 +138,9 @@ export default function Loans() {
                       </td>
                       <td className="p-3 text-center">
                         <div className="flex items-center justify-center gap-2">
-                          <Link to={`/LoanDetail?id=${l.id}`} className="inline-flex items-center gap-1 text-xs text-[#d4a533] hover:underline">
+                          <button onClick={() => navigate(`/LoanDetail?id=${l.id}`)} className="inline-flex items-center gap-1 text-xs text-[#d4a533] hover:underline cursor-pointer">
                             <Eye className="w-3.5 h-3.5" /> Ver
-                          </Link>
+                          </button>
                           <button onClick={() => { setDeletingLoan(l); setDeletePassword(''); setDeleteError(false); setDeleteOpen(true); }} className="text-gray-600 hover:text-red-400 transition-colors p-1">
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
