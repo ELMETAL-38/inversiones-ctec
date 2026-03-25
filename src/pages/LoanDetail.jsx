@@ -174,9 +174,21 @@ export default function LoanDetail() {
           <h1 className="text-2xl font-bold text-gray-100">{loan.client_name}</h1>
           <p className="text-sm text-gray-500 mt-0.5">Préstamo — {TYPE_LABELS[loan.interest_type]}</p>
         </div>
-        <Button onClick={() => { setPayAmount(String(loan.installment_amount || '')); setPayDialogOpen(true); }} className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold" disabled={loan.status === 'paid'}>
-          <DollarSign className="w-4 h-4 mr-1" /> Registrar Pago
-        </Button>
+        <div className="flex gap-2">
+          {payments.length > 0 && (
+            <Button
+              variant="outline"
+              onClick={() => downloadReceiptAsImage(payments[0])}
+              className="border-[#1e293b] text-[#d4a533] hover:bg-[#d4a533]/10"
+              title="Descargar último recibo"
+            >
+              <Download className="w-4 h-4" />
+            </Button>
+          )}
+          <Button onClick={() => { setPayAmount(String(loan.installment_amount || '')); setPayDialogOpen(true); }} className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold" disabled={loan.status === 'paid'}>
+            <DollarSign className="w-4 h-4 mr-1" /> Registrar Pago
+          </Button>
+        </div>
       </div>
 
       {/* Summary cards */}
