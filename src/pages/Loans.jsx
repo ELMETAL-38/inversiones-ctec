@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Search, Eye, Trash2 } from 'lucide-react';
+import { Plus, Search, Eye, Trash2, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -29,6 +29,11 @@ export default function Loans() {
 
   const queryClient = useQueryClient();
 
+  const { data: clients = [] } = useQuery({
+    queryKey: ['clients'],
+    queryFn: () => base44.entities.Client.list('-created_date', 200),
+  });
+
   const { data: loans = [], isLoading } = useQuery({
     queryKey: ['loans'],
     queryFn: () => base44.entities.Loan.list('-created_date', 200),
@@ -48,6 +53,34 @@ export default function Loans() {
       toast.success('Préstamo eliminado');
     },
   });
+
+  const printContract = async (loan) => {
+    const client = clients.find(c => c.id === loan.client_id);
+    try {
+      await base44.entities.Contract.create({
+        loan_id: loan.id,
+        client_id: loan.client_id,
+        client_name: loan.client_name,
+        loan_amount: loan.amount,
+        total_to_pay: loan.total_to_pay,
+        start_date: loan.start_date,
+        due_date: loan.due_date,
+        interest_rate: loan.interest_rate,
+        interest_type: loan.interest_type,
+        num_installments: loan.num_installments,
+        printed_at: new Date().toISOString().split('T')[0],
+      });
+    } catch (_) {}
+    const fmtL = (n) => new Intl.NumberFormat('es-DO', { style: 'currency', currency: 'DOP' }).format(n || 0);
+    const TL = { daily: 'Diario', weekly: 'Semanal', biweekly: 'Quincenal', monthly: 'Mensual' };
+    const LOGO_URL = 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/user_69b62672be45da00af3df17b/0d96f8146_LogodeinversionesCTEC.png';
+    const rows = (loan.payment_schedule || []).map(s => `<tr><td style="padding:6px 8px;border-bottom:1px solid #f0f0f0;text-align:center;">${s.installment_number}</td><td style="padding:6px 8px;border-bottom:1px solid #f0f0f0;text-align:center;">${s.due_date}</td><td style="padding:6px 8px;border-bottom:1px solid #f0f0f0;text-align:right;">RD$ ${Number(s.amount).toFixed(2)}</td></tr>`).join('');
+    const html = `<html><head><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;color:#1a1a1a;padding:30px;font-size:13px}.hdr{display:flex;align-items:center;gap:16px;border-bottom:3px solid #d4a533;padding-bottom:16px;margin-bottom:20px}.logo{width:70px;height:70px;object-fit:contain}.ttl{text-align:center;font-size:16px;font-weight:bold;color:#333;background:#f9f5ec;padding:10px;border-radius:6px;margin-bottom:20px;border:1px solid #e8d89a}.sec{margin-bottom:20px}.sec-t{font-size:12px;font-weight:bold;color:#d4a533;text-transform:uppercase;border-bottom:1px solid #e8d89a;padding-bottom:4px;margin-bottom:10px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.item{display:flex;justify-content:space-between;padding:6px 10px;background:#f9f9f9;border-radius:4px}.item span:first-child{color:#666}.item span:last-child{font-weight:600}.box{background:linear-gradient(135deg,#fffbf0,#fff8e6);border:2px solid #d4a533;border-radius:8px;padding:16px;margin-bottom:20px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;text-align:center}table{width:100%;border-collapse:collapse;font-size:12px}thead tr{background:#d4a533;color:#fff}thead th{padding:8px;text-align:center}tbody tr:nth-child(even){background:#fafafa}.sigs{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:30px}.sig{text-align:center;border-top:1px solid #999;padding-top:6px;color:#555;font-size:11px}.ftr{text-align:center;margin-top:24px;padding-top:14px;border-top:2px solid #d4a533;color:#888;font-size:11px}</style></head><body><div class="hdr"><img src="${LOGO_URL}" class="logo"/><div><div style="color:#d4a533;font-size:22px;font-weight:bold;">INVERSIONES CTEC</div><div style="color:#555;font-size:11px;">Servicios Financieros &middot; Rep&uacute;blica Dominicana</div></div><div style="margin-left:auto;text-align:right;font-size:11px;color:#888;">Fecha: ${new Date().toLocaleDateString('es-DO')}</div></div><div class="ttl">&#128196; CONTRATO DE PR&Eacute;STAMO</div><div class="sec"><div class="sec-t">Datos del Cliente</div><div class="grid"><div class="item"><span>Nombre:</span><span>${client?.first_name||''} ${client?.last_name||''}</span></div><div class="item"><span>C&eacute;dula / ID:</span><span>${client?.id_number||'&mdash;'}</span></div><div class="item"><span>Tel&eacute;fono:</span><span>${client?.phone||'&mdash;'}</span></div><div class="item"><span>Direcci&oacute;n:</span><span>${client?.address||'&mdash;'}</span></div></div></div><div class="sec"><div class="sec-t">Condiciones del Pr&eacute;stamo</div><div class="grid"><div class="item"><span>Monto Prestado:</span><span>${fmtL(loan.amount)}</span></div><div class="item"><span>Tasa de Inter&eacute;s:</span><span>${loan.interest_rate}% ${TL[loan.interest_type]||''}</span></div><div class="item"><span>N&uacute;mero de Cuotas:</span><span>${loan.num_installments}</span></div><div class="item"><span>Valor por Cuota:</span><span>${fmtL(loan.installment_amount)}</span></div><div class="item"><span>Fecha de Inicio:</span><span>${loan.start_date}</span></div><div class="item"><span>Fecha de Vencimiento:</span><span>${loan.due_date||'&mdash;'}</span></div><div class="item"><span>Inter&eacute;s por Mora:</span><span>${loan.late_interest}%</span></div><div class="item"><span>D&iacute;as de Gracia:</span><span>${loan.grace_days} d&iacute;as</span></div></div></div><div class="box"><div><p style="color:#888;font-size:11px;">Capital</p><p style="font-size:17px;font-weight:bold;color:#3b82f6;">${fmtL(loan.amount)}</p></div><div><p style="color:#888;font-size:11px;">Inter&eacute;s Total</p><p style="font-size:17px;font-weight:bold;color:#d4a533;">${fmtL(loan.total_interest)}</p></div><div><p style="color:#888;font-size:11px;">TOTAL A PAGAR</p><p style="font-size:17px;font-weight:bold;color:#10b981;">${fmtL(loan.total_to_pay)}</p></div></div><div class="sec"><div class="sec-t">Calendario de Pagos</div><table><thead><tr><th>#</th><th>Fecha de Vencimiento</th><th>Monto</th></tr></thead><tbody>${rows}</tbody></table></div><div class="sigs"><div class="sig">Firma del Prestatario<br/>${client?.first_name||''} ${client?.last_name||''}</div><div class="sig">Firma Inversiones CTEC<br/>Autorizado</div></div><div class="ftr"><strong>INVERSIONES CTEC</strong> &mdash; Tel: 809-462-2360</div></body></html>`;
+    const win = window.open('', '_blank');
+    win.document.write(html);
+    win.document.close();
+    win.onload = () => win.print();
+  };
 
   const today = new Date().toISOString().split('T')[0];
   const filtered = loans.filter(l => {
@@ -140,6 +173,9 @@ export default function Loans() {
                         <div className="flex items-center justify-center gap-2">
                           <button onClick={() => navigate(`/LoanDetail?id=${l.id}`)} className="inline-flex items-center gap-1 text-xs text-[#d4a533] hover:underline cursor-pointer">
                             <Eye className="w-3.5 h-3.5" /> Ver
+                          </button>
+                          <button onClick={() => printContract(l)} title="Imprimir contrato" className="text-gray-500 hover:text-[#d4a533] transition-colors p-1">
+                            <Printer className="w-3.5 h-3.5" />
                           </button>
                           <button onClick={() => { setDeletingLoan(l); setDeletePassword(''); setDeleteError(false); setDeleteOpen(true); }} className="text-gray-600 hover:text-red-400 transition-colors p-1">
                             <Trash2 className="w-3.5 h-3.5" />
