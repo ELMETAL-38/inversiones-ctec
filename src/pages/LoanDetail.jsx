@@ -145,93 +145,34 @@ export default function LoanDetail() {
     link.click();
   };
 
-  const printContract = () => {
-    const fmtLocal = (n) => new Intl.NumberFormat('es-DO', { style: 'currency', currency: 'DOP' }).format(n || 0);
-    const TYPE_LABELS_LOCAL = { daily: 'Diario', weekly: 'Semanal', biweekly: 'Quincenal', monthly: 'Mensual' };
-    const scheduleRows = (loan.payment_schedule || []).map(s => `
-      <tr>
-        <td style="padding:6px 8px;border-bottom:1px solid #f0f0f0;text-align:center;">${s.installment_number}</td>
-        <td style="padding:6px 8px;border-bottom:1px solid #f0f0f0;text-align:center;">${s.due_date}</td>
-        <td style="padding:6px 8px;border-bottom:1px solid #f0f0f0;text-align:right;">RD$ ${Number(s.amount).toFixed(2)}</td>
-      </tr>
-    `).join('');
-    const html = `<html><head><meta charset="UTF-8"><style>
-      * { margin:0; padding:0; box-sizing:border-box; }
-      body { font-family: Arial, sans-serif; color: #1a1a1a; background: #fff; padding: 30px; font-size: 13px; }
-      .header { display:flex; align-items:center; gap:16px; border-bottom: 3px solid #d4a533; padding-bottom: 16px; margin-bottom: 20px; }
-      .logo { width:70px; height:70px; object-fit:contain; }
-      .company h1 { color:#d4a533; font-size:22px; font-weight:bold; letter-spacing:1px; }
-      .doc-title { text-align:center; font-size:16px; font-weight:bold; color:#333; background:#f9f5ec; padding:10px; border-radius:6px; margin-bottom:20px; border:1px solid #e8d89a; }
-      .section { margin-bottom:20px; }
-      .section-title { font-size:12px; font-weight:bold; color:#d4a533; text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid #e8d89a; padding-bottom:4px; margin-bottom:10px; }
-      .info-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-      .info-item { display:flex; justify-content:space-between; padding:6px 10px; background:#f9f9f9; border-radius:4px; }
-      .info-item span:first-child { color:#666; }
-      .info-item span:last-child { font-weight:600; color:#1a1a1a; }
-      .totals-box { background:linear-gradient(135deg, #fffbf0, #fff8e6); border:2px solid #d4a533; border-radius:8px; padding:16px; margin-bottom:20px; }
-      .totals-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; text-align:center; }
-      .total-item p:first-child { color:#888; font-size:11px; }
-      .total-item p:last-child { font-size:17px; font-weight:bold; margin-top:3px; }
-      table { width:100%; border-collapse:collapse; font-size:12px; }
-      thead tr { background:#d4a533; color:#fff; }
-      thead th { padding:8px; text-align:center; }
-      tbody tr:nth-child(even) { background:#fafafa; }
-      .signature-area { display:grid; grid-template-columns:1fr 1fr; gap:40px; margin-top:30px; }
-      .sig-box { text-align:center; border-top:1px solid #999; padding-top:6px; color:#555; font-size:11px; }
-      .footer { text-align:center; margin-top:24px; padding-top:14px; border-top:2px solid #d4a533; color:#888; font-size:11px; }
-    </style></head><body>
-      <div class="header">
-        <img src="${LOGO_URL}" class="logo" />
-        <div class="company"><h1>INVERSIONES CTEC</h1><p>Servicios Financieros · República Dominicana</p></div>
-        <div style="margin-left:auto;text-align:right;font-size:11px;color:#888;"><p>Fecha: ${new Date().toLocaleDateString('es-DO')}</p><p>Contrato de Préstamo</p></div>
-      </div>
-      <div class="doc-title">📄 CONTRATO DE PRÉSTAMO</div>
-      <div class="section">
-        <div class="section-title">Datos del Cliente</div>
-        <div class="info-grid">
-          <div class="info-item"><span>Nombre:</span><span>${client?.first_name || ''} ${client?.last_name || ''}</span></div>
-          <div class="info-item"><span>Cédula / ID:</span><span>${client?.id_number || '—'}</span></div>
-          <div class="info-item"><span>Teléfono:</span><span>${client?.phone || '—'}</span></div>
-          <div class="info-item"><span>Dirección:</span><span>${client?.address || '—'}</span></div>
-        </div>
-      </div>
-      <div class="section">
-        <div class="section-title">Condiciones del Préstamo</div>
-        <div class="info-grid">
-          <div class="info-item"><span>Monto Prestado:</span><span>${fmtLocal(loan.amount)}</span></div>
-          <div class="info-item"><span>Tasa de Interés:</span><span>${loan.interest_rate}% ${TYPE_LABELS_LOCAL[loan.interest_type] || ''}</span></div>
-          <div class="info-item"><span>Número de Cuotas:</span><span>${loan.num_installments}</span></div>
-          <div class="info-item"><span>Valor por Cuota:</span><span>${fmtLocal(loan.installment_amount)}</span></div>
-          <div class="info-item"><span>Fecha de Inicio:</span><span>${loan.start_date}</span></div>
-          <div class="info-item"><span>Fecha de Vencimiento:</span><span>${loan.due_date || '—'}</span></div>
-          <div class="info-item"><span>Interés por Mora:</span><span>${loan.late_interest}%</span></div>
-          <div class="info-item"><span>Días de Gracia:</span><span>${loan.grace_days} días</span></div>
-        </div>
-      </div>
-      <div class="totals-box">
-        <div class="totals-grid">
-          <div class="total-item"><p>Capital</p><p style="color:#3b82f6;">${fmtLocal(loan.amount)}</p></div>
-          <div class="total-item"><p>Interés Total</p><p style="color:#d4a533;">${fmtLocal(loan.total_interest)}</p></div>
-          <div class="total-item"><p>TOTAL A PAGAR</p><p style="color:#10b981;">${fmtLocal(loan.total_to_pay)}</p></div>
-        </div>
-      </div>
-      <div class="section">
-        <div class="section-title">Calendario de Pagos</div>
-        <table><thead><tr><th>#</th><th>Fecha de Vencimiento</th><th>Monto</th></tr></thead><tbody>${scheduleRows}</tbody></table>
-      </div>
-      <div class="signature-area">
-        <div class="sig-box">Firma del Prestatario<br/>${client?.first_name || ''} ${client?.last_name || ''}</div>
-        <div class="sig-box">Firma Inversiones CTEC<br/>Autorizado</div>
-      </div>
-      <div class="footer">
-        <strong>INVERSIONES CTEC</strong> — Tel: 809-462-2360<br/>
-        Este documento constituye un contrato de préstamo legalmente vinculante.
-        <div style="margin-top:10px;text-align:left;font-size:9px;color:#666;border-top:1px solid #ddd;padding-top:8px;">
-          <strong style="font-size:10px;">POLÍTICAS Y REGLAS DE PRÉSTAMOS Y COBRANZAS</strong><br/><br/>
-          <strong>1. CARGOS POR MORA (ATRASOS)</strong> En caso de no cumplir con el pago en la fecha pactada, se aplicará un cargo por mora del 5% diario calculado sobre la deuda total.<br/><br/>
-          <strong>2. ADVERTENCIA DE INCUMPLIMIENTO</strong> Si el atraso supera los siete (7) días calendario, se aplicarán cargos administrativos adicionales por gestión de cobro externo.
-        </div>
-      </div>
+  const printContract = async () => {
+    try {
+      await base44.entities.Contract.create({
+        loan_id: loanId,
+        client_id: loan.client_id,
+        client_name: loan.client_name,
+        loan_amount: loan.amount,
+        total_to_pay: loan.total_to_pay,
+        start_date: loan.start_date,
+        due_date: loan.due_date,
+        interest_rate: loan.interest_rate,
+        interest_type: loan.interest_type,
+        num_installments: loan.num_installments,
+        printed_at: new Date().toISOString().split('T')[0],
+      });
+    } catch (_) {}
+    const fmtL = (n) => new Intl.NumberFormat('es-DO', { style: 'currency', currency: 'DOP' }).format(n || 0);
+    const TL = { daily: 'Diario', weekly: 'Semanal', biweekly: 'Quincenal', monthly: 'Mensual' };
+    const rows = (loan.payment_schedule || []).map(s => `<tr><td style="padding:6px 8px;border-bottom:1px solid #f0f0f0;text-align:center;">${s.installment_number}</td><td style="padding:6px 8px;border-bottom:1px solid #f0f0f0;text-align:center;">${s.due_date}</td><td style="padding:6px 8px;border-bottom:1px solid #f0f0f0;text-align:right;">RD$ ${Number(s.amount).toFixed(2)}</td></tr>`).join('');
+    const html = `<html><head><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;color:#1a1a1a;padding:30px;font-size:13px}.hdr{display:flex;align-items:center;gap:16px;border-bottom:3px solid #d4a533;padding-bottom:16px;margin-bottom:20px}.logo{width:70px;height:70px;object-fit:contain}.ttl{text-align:center;font-size:16px;font-weight:bold;color:#333;background:#f9f5ec;padding:10px;border-radius:6px;margin-bottom:20px;border:1px solid #e8d89a}.sec{margin-bottom:20px}.sec-t{font-size:12px;font-weight:bold;color:#d4a533;text-transform:uppercase;border-bottom:1px solid #e8d89a;padding-bottom:4px;margin-bottom:10px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.item{display:flex;justify-content:space-between;padding:6px 10px;background:#f9f9f9;border-radius:4px}.item span:first-child{color:#666}.item span:last-child{font-weight:600}.box{background:linear-gradient(135deg,#fffbf0,#fff8e6);border:2px solid #d4a533;border-radius:8px;padding:16px;margin-bottom:20px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;text-align:center}table{width:100%;border-collapse:collapse;font-size:12px}thead tr{background:#d4a533;color:#fff}thead th{padding:8px;text-align:center}tbody tr:nth-child(even){background:#fafafa}.sigs{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:30px}.sig{text-align:center;border-top:1px solid #999;padding-top:6px;color:#555;font-size:11px}.ftr{text-align:center;margin-top:24px;padding-top:14px;border-top:2px solid #d4a533;color:#888;font-size:11px}</style></head><body>
+      <div class="hdr"><img src="${LOGO_URL}" class="logo"/><div><div style="color:#d4a533;font-size:22px;font-weight:bold;">INVERSIONES CTEC</div><div style="color:#555;font-size:11px;">Servicios Financieros &middot; Rep&uacute;blica Dominicana</div></div><div style="margin-left:auto;text-align:right;font-size:11px;color:#888;">Fecha: ${new Date().toLocaleDateString('es-DO')}</div></div>
+      <div class="ttl">&#128196; CONTRATO DE PR&Eacute;STAMO</div>
+      <div class="sec"><div class="sec-t">Datos del Cliente</div><div class="grid"><div class="item"><span>Nombre:</span><span>${client?.first_name||''} ${client?.last_name||''}</span></div><div class="item"><span>C&eacute;dula / ID:</span><span>${client?.id_number||'&mdash;'}</span></div><div class="item"><span>Tel&eacute;fono:</span><span>${client?.phone||'&mdash;'}</span></div><div class="item"><span>Direcci&oacute;n:</span><span>${client?.address||'&mdash;'}</span></div></div></div>
+      <div class="sec"><div class="sec-t">Condiciones del Pr&eacute;stamo</div><div class="grid"><div class="item"><span>Monto Prestado:</span><span>${fmtL(loan.amount)}</span></div><div class="item"><span>Tasa de Inter&eacute;s:</span><span>${loan.interest_rate}% ${TL[loan.interest_type]||''}</span></div><div class="item"><span>N&uacute;mero de Cuotas:</span><span>${loan.num_installments}</span></div><div class="item"><span>Valor por Cuota:</span><span>${fmtL(loan.installment_amount)}</span></div><div class="item"><span>Fecha de Inicio:</span><span>${loan.start_date}</span></div><div class="item"><span>Fecha de Vencimiento:</span><span>${loan.due_date||'&mdash;'}</span></div><div class="item"><span>Inter&eacute;s por Mora:</span><span>${loan.late_interest}%</span></div><div class="item"><span>D&iacute;as de Gracia:</span><span>${loan.grace_days} d&iacute;as</span></div></div></div>
+      <div class="box"><div><p style="color:#888;font-size:11px;">Capital</p><p style="font-size:17px;font-weight:bold;color:#3b82f6;">${fmtL(loan.amount)}</p></div><div><p style="color:#888;font-size:11px;">Inter&eacute;s Total</p><p style="font-size:17px;font-weight:bold;color:#d4a533;">${fmtL(loan.total_interest)}</p></div><div><p style="color:#888;font-size:11px;">TOTAL A PAGAR</p><p style="font-size:17px;font-weight:bold;color:#10b981;">${fmtL(loan.total_to_pay)}</p></div></div>
+      <div class="sec"><div class="sec-t">Calendario de Pagos</div><table><thead><tr><th>#</th><th>Fecha de Vencimiento</th><th>Monto</th></tr></thead><tbody>${rows}</tbody></table></div>
+      <div class="sigs"><div class="sig">Firma del Prestatario<br/>${client?.first_name||''} ${client?.last_name||''}</div><div class="sig">Firma Inversiones CTEC<br/>Autorizado</div></div>
+      <div class="ftr"><strong>INVERSIONES CTEC</strong> &mdash; Tel: 809-462-2360</div>
     </body></html>`;
     const win = window.open('', '_blank');
     win.document.write(html);

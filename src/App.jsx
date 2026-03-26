@@ -16,6 +16,7 @@ import Reports from '@/pages/Reports';
 import Alerts from '@/pages/Alerts';
 import Caja from '@/pages/Caja';
 import Calculadora from '@/pages/Calculadora';
+import Contracts from '@/pages/Contracts';
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
               <Route path="/Alerts" element={<Alerts />} />
               <Route path="/Caja" element={<Caja />} />
               <Route path="/Calculadora" element={<Calculadora />} />
+              <Route path="/Contracts" element={<Contracts />} />
             </Route>
             <Route path="*" element={<PageNotFound />} />
           </Routes>

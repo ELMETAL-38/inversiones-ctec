@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, Users, HandCoins, FileText, BarChart3, 
-  Bell, Menu, X, ChevronRight, LogOut, Wallet, Calculator, RefreshCw
+  Bell, Menu, X, ChevronRight, LogOut, Wallet, Calculator, RefreshCw, ScrollText
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
@@ -17,6 +17,7 @@ const navItems = [
   { path: '/Alerts', icon: Bell, label: 'Alertas' },
   { path: '/Caja', icon: Wallet, label: 'Caja' },
   { path: '/Calculadora', icon: Calculator, label: 'Calculadora' },
+  { path: '/Contracts', icon: ScrollText, label: 'Contratos' },
 ];
 
 export default function Layout() {
