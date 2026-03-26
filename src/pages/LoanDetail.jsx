@@ -93,7 +93,7 @@ export default function LoanDetail() {
           <h1>INVERSIONES CTEC</h1>
           <p style="font-size:12px;color:#666;">Recibo de Pago</p>
         </div>
-        <div class="row"><span>Cliente:</span><strong>${loan?.client_name || ''}</strong></div>
+        <div class="row"><span>Cliente:</span><strong>${loan?.client_name || client?.first_name + ' ' + client?.last_name || ''}</strong></div>
         <div class="row"><span>Cédula / ID:</span><strong>${client?.id_number || '—'}</strong></div>
         <div class="row"><span>Teléfono:</span><strong>${client?.phone || '—'}</strong></div>
         <div class="row"><span>Dirección:</span><strong>${client?.address || '—'}</strong></div>
