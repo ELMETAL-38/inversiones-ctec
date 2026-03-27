@@ -1,0 +1,51 @@
+{
+  "name": "Client",
+  "type": "object",
+  "properties": {
+    "first_name": {
+      "type": "string",
+      "description": "Nombre del cliente"
+    },
+    "last_name": {
+      "type": "string",
+      "description": "Apellido del cliente"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Tel\u00e9fono"
+    },
+    "address": {
+      "type": "string",
+      "description": "Direcci\u00f3n"
+    },
+    "id_number": {
+      "type": "string",
+      "description": "C\u00e9dula o ID"
+    },
+    "photo_url": {
+      "type": "string",
+      "description": "URL de la foto del cliente"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notas adicionales"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "default": "active"
+    },
+    "drive_folder_id": {
+      "type": "string",
+      "description": "ID de la carpeta en Google Drive"
+    }
+  },
+  "required": [
+    "first_name",
+    "last_name",
+    "id_number"
+  ]
+}

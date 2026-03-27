@@ -215,6 +215,14 @@ export default function LoanDetail() {
     win.document.write(html);
     win.document.close();
     win.onload = () => win.print();
+
+    // Guardar en Drive en background
+    base44.functions.invoke('saveContractToDrive', {
+      client_id: loan.client_id,
+      client_name: loan.client_name,
+      html_content: html,
+      file_name: `Contrato_${loan.client_name}_${loan.start_date}.html`,
+    }).then(() => toast.success('Contrato guardado en Drive')).catch(() => {});
   };
 
   if (isLoading || !loan) {
