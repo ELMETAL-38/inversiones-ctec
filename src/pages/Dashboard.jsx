@@ -30,10 +30,12 @@ export default function Dashboard() {
   const paidLoans = loans.filter(l => l.status === 'paid');
   const overdueLoans = loans.filter(l => {
     if (l.status === 'paid') return false;
-    if (l.status === 'overdue') return true;
-    if (l.status !== 'active') return false;
-    if (l.payment_schedule && l.payment_schedule.length > 0) {
-      return l.payment_schedule.some(s => s.due_date < today);
+    if ((l.remaining_balance || 0) <= 0) return false;
+    if (l.status !== 'active' && l.status !== 'overdue') return false;
+    if (l.payment_schedule && l.payment_schedule.length > 0 && l.installment_amount > 0) {
+      const paidCount = Math.round((l.total_paid || 0) / l.installment_amount);
+      const unpaidSchedule = l.payment_schedule.slice(paidCount);
+      return unpaidSchedule.some(s => s.due_date < today);
     }
     return l.due_date && l.due_date < today;
   });

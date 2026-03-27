@@ -14,16 +14,16 @@ export default function Alerts() {
   const today = new Date();
   const todayStr = today.toISOString().split('T')[0];
 
-  // Buscar préstamos con cuotas individuales vencidas (no solo la fecha global)
   const overdueLoans = loans.filter(l => {
     if (l.status === 'paid') return false;
-    if (!l.payment_schedule) return (l.status === 'active' || l.status === 'overdue') && l.due_date && l.due_date < todayStr;
-    // Contar pagos ya realizados
-    return l.payment_schedule.some((s, i) => {
-      // Si ya hay suficientes pagos registrados, esta cuota está pagada
-      // No podemos saber exactamente sin los payments, usamos due_date de cuota
-      return s.due_date < todayStr;
-    });
+    if ((l.remaining_balance || 0) <= 0) return false;
+    if (l.status !== 'active' && l.status !== 'overdue') return false;
+    if (l.payment_schedule && l.payment_schedule.length > 0 && l.installment_amount > 0) {
+      const paidCount = Math.round((l.total_paid || 0) / l.installment_amount);
+      const unpaidSchedule = l.payment_schedule.slice(paidCount);
+      return unpaidSchedule.some(s => s.due_date < todayStr);
+    }
+    return l.due_date && l.due_date < todayStr;
   });
 
   const upcomingLoans = loans.filter(l => {
