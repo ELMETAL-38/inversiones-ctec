@@ -28,7 +28,15 @@ export default function Dashboard() {
   const today = new Date().toISOString().split('T')[0];
   const activeLoans = loans.filter(l => l.status === 'active');
   const paidLoans = loans.filter(l => l.status === 'paid');
-  const overdueLoans = loans.filter(l => l.status === 'overdue' || (l.status === 'active' && l.due_date && l.due_date < today));
+  const overdueLoans = loans.filter(l => {
+    if (l.status === 'paid') return false;
+    if (l.status === 'overdue') return true;
+    if (l.status !== 'active') return false;
+    if (l.payment_schedule && l.payment_schedule.length > 0) {
+      return l.payment_schedule.some(s => s.due_date < today);
+    }
+    return l.due_date && l.due_date < today;
+  });
   const totalLent = loans.reduce((s, l) => s + (l.amount || 0), 0);
   const totalCollected = payments.reduce((s, p) => s + (p.amount || 0), 0);
   const totalInterest = loans.reduce((s, l) => s + (l.total_interest || 0), 0);
