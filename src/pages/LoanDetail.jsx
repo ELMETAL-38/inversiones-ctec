@@ -347,6 +347,7 @@ export default function LoanDetail() {
                   <th className="text-left p-2">Fecha</th>
                   <th className="text-right p-2">Monto</th>
                   <th className="text-right p-2">Mora</th>
+                  <th className="text-right p-2">Total</th>
                   <th className="text-center p-2">Estado</th>
                 </tr>
               </thead>
@@ -365,6 +366,9 @@ export default function LoanDetail() {
                         ) : (
                           <span className="text-gray-600">—</span>
                         )}
+                      </td>
+                      <td className="p-2 text-right font-semibold">
+                        <span className={s.mora > 0 ? 'text-yellow-400' : 'text-gray-300'}>{fmt(s.amount + s.mora)}</span>
                       </td>
                       <td className="p-2 text-center">
                         <span className={`text-xs px-2 py-0.5 rounded-full ${isPaid ? 'bg-emerald-500/10 text-emerald-400' : isLate ? 'bg-red-500/10 text-red-400' : 'bg-gray-500/10 text-gray-500'}`}>
