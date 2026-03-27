@@ -14,9 +14,17 @@ export default function Alerts() {
   const today = new Date();
   const todayStr = today.toISOString().split('T')[0];
 
-  const overdueLoans = loans.filter(l => 
-    (l.status === 'active' || l.status === 'overdue') && l.due_date && l.due_date < todayStr
-  );
+  // Buscar préstamos con cuotas individuales vencidas (no solo la fecha global)
+  const overdueLoans = loans.filter(l => {
+    if (l.status === 'paid') return false;
+    if (!l.payment_schedule) return (l.status === 'active' || l.status === 'overdue') && l.due_date && l.due_date < todayStr;
+    // Contar pagos ya realizados
+    return l.payment_schedule.some((s, i) => {
+      // Si ya hay suficientes pagos registrados, esta cuota está pagada
+      // No podemos saber exactamente sin los payments, usamos due_date de cuota
+      return s.due_date < todayStr;
+    });
+  });
 
   const upcomingLoans = loans.filter(l => {
     if (l.status !== 'active' || !l.payment_schedule) return false;
@@ -104,19 +112,25 @@ export default function Alerts() {
           </div>
           {section.items.length > 0 ? (
             <div className="divide-y divide-[#1e293b]/50">
-              {section.items.map(l => (
+              {section.items.map(l => {
+                // Encontrar la cuota vencida más antigua no pagada (para mostrar info relevante)
+                const overdueDueDate = l.payment_schedule
+                  ? l.payment_schedule.find(s => s.due_date < todayStr)?.due_date || l.due_date
+                  : l.due_date;
+                return (
                 <div key={l.id} className="px-5 py-3 flex items-center justify-between hover:bg-white/[0.02]">
                   <div>
                     <p className="text-sm font-medium text-gray-200">{l.client_name}</p>
                     <p className="text-xs text-gray-500">
-                      {fmt(l.remaining_balance)} pendiente · Vence: {l.due_date}
+                      {fmt(l.remaining_balance)} pendiente · Vence: {overdueDueDate}
                     </p>
                   </div>
                   <Link to={`/LoanDetail?id=${l.id}`} className="text-[#d4a533] hover:text-[#b8922d] p-2">
                     <Eye className="w-4 h-4" />
                   </Link>
                 </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="px-5 py-8 text-center text-gray-600 text-sm">{section.emptyText}</div>
