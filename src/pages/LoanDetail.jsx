@@ -229,14 +229,20 @@ export default function LoanDetail() {
   const progress = loan.total_to_pay ? ((loan.total_paid || 0) / loan.total_to_pay) * 100 : 0;
 
   const today = new Date().toISOString().split('T')[0];
-  const mora = (() => {
-    if (!loan.due_date || !loan.late_interest || !loan.remaining_balance || loan.status === 'paid') return 0;
-    const dueDate = new Date(loan.due_date);
-    const todayDate = new Date(today);
+  const todayDate = new Date(today);
+
+  // Calcular mora POR CUOTA individual
+  const installmentMoras = (loan.payment_schedule || []).map((s, i) => {
+    const isPaid = payments.length > i;
+    if (isPaid || loan.status === 'paid' || !loan.late_interest) return { ...s, mora: 0, moraDays: 0 };
+    const dueDate = new Date(s.due_date);
     const daysOverdue = Math.max(0, Math.floor((todayDate - dueDate) / (1000 * 60 * 60 * 24)));
-    const graceUsed = Math.max(0, daysOverdue - (loan.grace_days || 0));
-    return graceUsed * (loan.late_interest / 100) * loan.remaining_balance;
-  })();
+    const moraDays = Math.max(0, daysOverdue - (loan.grace_days || 0));
+    const moraAmount = moraDays * (loan.late_interest / 100) * s.amount;
+    return { ...s, mora: moraAmount, moraDays };
+  });
+
+  const mora = installmentMoras.reduce((sum, s) => sum + s.mora, 0);
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -340,12 +346,12 @@ export default function LoanDetail() {
                   <th className="text-left p-2">#</th>
                   <th className="text-left p-2">Fecha</th>
                   <th className="text-right p-2">Monto</th>
+                  <th className="text-right p-2">Mora</th>
                   <th className="text-center p-2">Estado</th>
                 </tr>
               </thead>
               <tbody>
-                {loan.payment_schedule.map((s, i) => {
-                  const today = new Date().toISOString().split('T')[0];
+                {installmentMoras.map((s, i) => {
                   const isPaid = payments.length > i;
                   const isLate = !isPaid && s.due_date < today;
                   return (
@@ -353,6 +359,13 @@ export default function LoanDetail() {
                       <td className="p-2 text-gray-400">{s.installment_number}</td>
                       <td className="p-2 text-gray-300">{s.due_date}</td>
                       <td className="p-2 text-right text-gray-300">{fmt(s.amount)}</td>
+                      <td className="p-2 text-right">
+                        {s.mora > 0 ? (
+                          <span className="text-red-400 font-medium">{fmt(s.mora)}<span className="text-[10px] text-red-400/60 ml-1">({s.moraDays}d)</span></span>
+                        ) : (
+                          <span className="text-gray-600">—</span>
+                        )}
+                      </td>
                       <td className="p-2 text-center">
                         <span className={`text-xs px-2 py-0.5 rounded-full ${isPaid ? 'bg-emerald-500/10 text-emerald-400' : isLate ? 'bg-red-500/10 text-red-400' : 'bg-gray-500/10 text-gray-500'}`}>
                           {isPaid ? 'Pagado' : isLate ? 'Atrasado' : 'Pendiente'}
