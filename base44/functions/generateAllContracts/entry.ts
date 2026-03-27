@@ -26,8 +26,9 @@ function generateContractHtml(loan, client) {
 }
 
 async function getOrCreateFolder(authHeader, parentId, folderName) {
+  const q = `name='${folderName}' and mimeType='application/vnd.google-apps.folder' and trashed=false${parentId ? ` and '${parentId}' in parents` : ''}`;
   const searchRes = await fetch(
-    `https://www.googleapis.com/drive/v3/files?q=name%3D'${encodeURIComponent(folderName)}'%20and%20mimeType%3D'application%2Fvnd.google-apps.folder'%20and%20trashed%3Dfalse${parentId ? `%20and%20'${parentId}'%20in%20parents` : ''}&fields=files(id,name)`,
+    `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name)`,
     { headers: authHeader }
   );
   const data = await searchRes.json();
@@ -46,27 +47,62 @@ async function getOrCreateFolder(authHeader, parentId, folderName) {
   return created.id;
 }
 
-async function uploadFileToDrive(authHeader, folderId, fileName, htmlContent) {
+// Sube HTML como Google Doc, lo exporta como PDF, luego sube el PDF y borra el doc temporal
+async function uploadAsPdf(authHeader, folderId, fileName, htmlContent) {
   const boundary = 'boundary_ctec';
-  const metadata = { name: fileName, mimeType: 'text/html', parents: [folderId] };
-  const body = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n--${boundary}\r\nContent-Type: text/html\r\n\r\n${htmlContent}\r\n--${boundary}--`;
 
-  const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+  // 1. Subir HTML como Google Doc (conversión automática)
+  const docMetadata = { name: fileName, mimeType: 'application/vnd.google-apps.document' };
+  const uploadBody = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(docMetadata)}\r\n--${boundary}\r\nContent-Type: text/html\r\n\r\n${htmlContent}\r\n--${boundary}--`;
+
+  const uploadRes = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
     method: 'POST',
     headers: { ...authHeader, 'Content-Type': `multipart/related; boundary=${boundary}` },
-    body,
+    body: uploadBody,
   });
-  return await res.json();
+  const docData = await uploadRes.json();
+  const docId = docData.id;
+
+  // 2. Exportar el Google Doc como PDF
+  const exportRes = await fetch(`https://www.googleapis.com/drive/v3/files/${docId}/export?mimeType=application/pdf`, {
+    headers: authHeader,
+  });
+  const pdfBuffer = await exportRes.arrayBuffer();
+
+  // 3. Subir el PDF a la carpeta del cliente
+  const pdfFileName = `${fileName}.pdf`;
+  const pdfMetadata = { name: pdfFileName, mimeType: 'application/pdf', parents: [folderId] };
+  const pdfBody = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(pdfMetadata)}\r\n--${boundary}\r\nContent-Type: application/pdf\r\n\r\n`;
+  const encoder = new TextEncoder();
+  const pdfBodyStart = encoder.encode(pdfBody);
+  const pdfBodyEnd = encoder.encode(`\r\n--${boundary}--`);
+  const combined = new Uint8Array(pdfBodyStart.length + pdfBuffer.byteLength + pdfBodyEnd.length);
+  combined.set(pdfBodyStart, 0);
+  combined.set(new Uint8Array(pdfBuffer), pdfBodyStart.length);
+  combined.set(pdfBodyEnd, pdfBodyStart.length + pdfBuffer.byteLength);
+
+  const pdfUploadRes = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+    method: 'POST',
+    headers: { ...authHeader, 'Content-Type': `multipart/related; boundary=${boundary}` },
+    body: combined,
+  });
+  const pdfData = await pdfUploadRes.json();
+
+  // 4. Borrar el Google Doc temporal
+  await fetch(`https://www.googleapis.com/drive/v3/files/${docId}`, {
+    method: 'DELETE',
+    headers: authHeader,
+  });
+
+  return pdfData;
 }
 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-
     const { accessToken } = await base44.asServiceRole.connectors.getConnection('googledrive');
     const authHeader = { Authorization: `Bearer ${accessToken}` };
 
-    // Obtener todos los préstamos y clientes
     const [loans, clients] = await Promise.all([
       base44.asServiceRole.entities.Loan.list(),
       base44.asServiceRole.entities.Client.list(),
@@ -75,7 +111,6 @@ Deno.serve(async (req) => {
     const clientMap = {};
     clients.forEach(c => { clientMap[c.id] = c; });
 
-    // Obtener o crear carpeta raíz
     const rootFolderId = await getOrCreateFolder(authHeader, null, ROOT_FOLDER_NAME);
     console.log('Root folder:', rootFolderId);
 
@@ -87,7 +122,6 @@ Deno.serve(async (req) => {
         const client = clientMap[loan.client_id];
         if (!client) { failed++; continue; }
 
-        // Obtener o crear carpeta del cliente
         let clientFolderId = client.drive_folder_id;
         if (!clientFolderId) {
           const folderName = `${client.first_name} ${client.last_name}`;
@@ -97,10 +131,10 @@ Deno.serve(async (req) => {
         }
 
         const html = generateContractHtml(loan, client);
-        const fileName = `Contrato_${client.first_name}_${client.last_name}_${loan.start_date || 'sin-fecha'}.html`;
-        await uploadFileToDrive(authHeader, clientFolderId, fileName, html);
+        const fileName = `Contrato_${client.first_name}_${client.last_name}_${loan.start_date || 'sin-fecha'}`;
+        await uploadAsPdf(authHeader, clientFolderId, fileName, html);
         success++;
-        console.log(`Contrato generado: ${fileName}`);
+        console.log(`PDF generado: ${fileName}.pdf`);
       } catch (err) {
         console.error(`Error en préstamo ${loan.id}:`, err.message);
         failed++;
