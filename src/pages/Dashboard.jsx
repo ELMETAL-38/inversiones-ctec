@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { HandCoins, DollarSign, TrendingUp, AlertTriangle, Users, Clock } from 'lucide-react';
+import { HandCoins, DollarSign, TrendingUp, AlertTriangle, Users, Clock, FolderUp } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import StatCard from '@/components/dashboard/StatCard';
 import { format, isAfter, parseISO } from 'date-fns';
@@ -12,6 +14,19 @@ const COLORS = ['#d4a533', '#10b981', '#3b82f6', '#ef4444'];
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const [generating, setGenerating] = useState(false);
+
+  const handleGenerateAllContracts = async () => {
+    setGenerating(true);
+    try {
+      const res = await base44.functions.invoke('generateAllContracts', {});
+      toast.success(`¡Listo! ${res.data.success} contrato(s) subido(s) a Drive. ${res.data.failed > 0 ? `${res.data.failed} fallaron.` : ''}`);
+    } catch (err) {
+      toast.error('Error al generar contratos: ' + err.message);
+    } finally {
+      setGenerating(false);
+    }
+  };
   const { data: loans = [], isLoading: loansLoading } = useQuery({
     queryKey: ['loans'],
     queryFn: () => base44.entities.Loan.list('-created_date', 200),
@@ -91,9 +106,19 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-100">Dashboard</h1>
-        <p className="text-sm text-gray-500 mt-1">Resumen general de Inversiones CTEC</p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-100">Dashboard</h1>
+          <p className="text-sm text-gray-500 mt-1">Resumen general de Inversiones CTEC</p>
+        </div>
+        <Button
+          onClick={handleGenerateAllContracts}
+          disabled={generating}
+          className="bg-[#d4a533] hover:bg-[#b8922d] text-black font-semibold text-xs"
+        >
+          <FolderUp className="w-4 h-4 mr-1" />
+          {generating ? 'Subiendo a Drive...' : 'Subir contratos a Drive'}
+        </Button>
       </div>
 
       {/* Stats */}
