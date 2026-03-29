@@ -19,6 +19,9 @@ export default function Contracts() {
   const [deletePassword, setDeletePassword] = useState('');
   const [deleteError, setDeleteError] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [downloadPasswordOpen, setDownloadPasswordOpen] = useState(false);
+  const [downloadPassword, setDownloadPassword] = useState('');
+  const [downloadPasswordError, setDownloadPasswordError] = useState(false);
 
   const { data: contracts = [], isLoading } = useQuery({
     queryKey: ['contracts'],
@@ -53,7 +56,7 @@ export default function Contracts() {
 
   const fmt = (n) => new Intl.NumberFormat('es-DO', { style: 'currency', currency: 'DOP' }).format(n || 0);
 
-  const handleDownloadAll = async () => {
+  const performDownload = async () => {
     setDownloading(true);
     try {
       const response = await base44.functions.invoke('downloadContracts', {});
@@ -72,6 +75,15 @@ export default function Contracts() {
     } finally {
       setDownloading(false);
     }
+  };
+
+  const handleDownloadPassword = (e) => {
+    e.preventDefault();
+    if (downloadPassword !== '3030') { setDownloadPasswordError(true); return; }
+    setDownloadPasswordOpen(false);
+    setDownloadPassword('');
+    setDownloadPasswordError(false);
+    performDownload();
   };
 
   const reprintContract = (contract) => {
@@ -174,7 +186,7 @@ export default function Contracts() {
           <p className="text-sm text-gray-500 mt-1">{contracts.length} contratos guardados</p>
         </div>
         <button
-          onClick={handleDownloadAll}
+          onClick={() => { setDownloadPassword(''); setDownloadPasswordError(false); setDownloadPasswordOpen(true); }}
           disabled={downloading || contracts.length === 0}
           className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
@@ -257,6 +269,40 @@ export default function Contracts() {
           </div>
         </div>
       )}
+
+      {/* Download Password Dialog */}
+      <AlertDialog open={downloadPasswordOpen} onOpenChange={(open) => { setDownloadPasswordOpen(open); if (!open) { setDownloadPassword(''); setDownloadPasswordError(false); } }}>
+        <AlertDialogContent className="bg-[#111827] border-[#1e293b] text-gray-200">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Verificar acceso</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-500">
+              Ingrese la contraseña para descargar los contratos.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <form onSubmit={handleDownloadPassword}>
+            <div className="py-2">
+              <input
+                type="password"
+                value={downloadPassword}
+                onChange={e => { setDownloadPassword(e.target.value); setDownloadPasswordError(false); }}
+                placeholder="Contraseña"
+                autoFocus
+                className={`w-full px-3 py-2 rounded-lg bg-[#0a0e17] border text-gray-200 text-sm outline-none focus:ring-2 transition-all ${
+                  downloadPasswordError ? 'border-red-500 focus:ring-red-500/30' : 'border-[#1e293b] focus:ring-[#d4a533]/30'
+                }`}
+              />
+              {downloadPasswordError && <p className="text-red-400 text-xs mt-1">Contraseña incorrecta</p>}
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="border-[#1e293b] text-gray-400 hover:bg-white/5">Cancelar</AlertDialogCancel>
+              <button
+                type="submit"
+                className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm"
+              >Descargar</button>
+            </AlertDialogFooter>
+          </form>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Delete Dialog */}
       <AlertDialog open={deleteOpen} onOpenChange={(open) => { setDeleteOpen(open); if (!open) { setDeletePassword(''); setDeleteError(false); } }}>
