@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
-import { Search, FileText, Printer, Eye } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Search, FileText, Printer, Eye, Trash2 } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
 
@@ -10,7 +11,12 @@ const LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/pub
 
 export default function Contracts() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deletingContract, setDeletingContract] = useState(null);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteError, setDeleteError] = useState(false);
 
   const { data: contracts = [], isLoading } = useQuery({
     queryKey: ['contracts'],
@@ -25,6 +31,17 @@ export default function Contracts() {
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
     queryFn: () => base44.entities.Client.list('-created_date', 200),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (contractId) => base44.entities.Contract.delete(contractId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contracts'] });
+      setDeleteOpen(false);
+      setDeletePassword('');
+      setDeleteError(false);
+      setDeletingContract(null);
+    }
   });
 
   const filtered = contracts.filter(c => {
@@ -185,6 +202,12 @@ export default function Contracts() {
                         >
                           <Printer className="w-3.5 h-3.5" /> Reimprimir
                         </button>
+                        <button
+                          onClick={() => { setDeletingContract(c); setDeletePassword(''); setDeleteError(false); setDeleteOpen(true); }}
+                          className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" /> Eliminar
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -201,6 +224,41 @@ export default function Contracts() {
           </div>
         </div>
       )}
+
+      {/* Delete Dialog */}
+      <AlertDialog open={deleteOpen} onOpenChange={(open) => { setDeleteOpen(open); if (!open) { setDeletePassword(''); setDeleteError(false); } }}>
+        <AlertDialogContent className="bg-[#111827] border-[#1e293b] text-gray-200">
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar contrato?</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-500">
+              Se eliminará permanentemente el contrato de {deletingContract?.client_name}. Ingrese la contraseña para confirmar.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-2">
+            <input
+              type="password"
+              value={deletePassword}
+              onChange={e => { setDeletePassword(e.target.value); setDeleteError(false); }}
+              placeholder="Contraseña"
+              className={`w-full px-3 py-2 rounded-lg bg-[#0a0e17] border text-gray-200 text-sm outline-none focus:ring-2 transition-all ${
+                deleteError ? 'border-red-500 focus:ring-red-500/30' : 'border-[#1e293b] focus:ring-[#d4a533]/30'
+              }`}
+            />
+            {deleteError && <p className="text-red-400 text-xs mt-1">Contraseña incorrecta</p>}
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-[#1e293b] text-gray-400 hover:bg-white/5">Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                if (deletePassword !== '3030') { setDeleteError(true); return; }
+                deleteMutation.mutate(deletingContract?.id);
+              }}
+              className="bg-red-600 hover:bg-red-700"
+            >Eliminar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
