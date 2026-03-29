@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, FileText, Printer, Eye, Trash2, Download } from 'lucide-react';
+import { Search, FileText, Printer, Eye, Trash2, Download, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
@@ -22,6 +22,7 @@ export default function Contracts() {
   const [downloadPasswordOpen, setDownloadPasswordOpen] = useState(false);
   const [downloadPassword, setDownloadPassword] = useState('');
   const [downloadPasswordError, setDownloadPasswordError] = useState(false);
+  const [shareOpen, setShareOpen] = useState(null);
 
   const { data: contracts = [], isLoading } = useQuery({
     queryKey: ['contracts'],
@@ -84,6 +85,20 @@ export default function Contracts() {
     setDownloadPassword('');
     setDownloadPasswordError(false);
     performDownload();
+  };
+
+  const handleShare = (contract, platform) => {
+    const client = clients.find(c => c.id === contract.client_id);
+    const text = `Contrato de Préstamo - ${client?.first_name} ${client?.last_name} - Monto: ${fmt(contract.loan_amount)}`;
+    
+    if (platform === 'whatsapp') {
+      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text + ' - ' + window.location.origin)}`;
+      window.open(whatsappUrl, '_blank');
+    } else if (platform === 'copy') {
+      navigator.clipboard.writeText(text);
+      toast.success('Copiado al portapapeles');
+    }
+    setShareOpen(null);
   };
 
   const reprintContract = (contract) => {
@@ -247,6 +262,30 @@ export default function Contracts() {
                         >
                           <Printer className="w-3.5 h-3.5" /> Reimprimir
                         </button>
+                        <div className="relative">
+                          <button
+                            onClick={() => setShareOpen(shareOpen === c.id ? null : c.id)}
+                            className="flex items-center gap-1 text-xs text-gray-400 hover:text-blue-400"
+                          >
+                            <Share2 className="w-3.5 h-3.5" /> Compartir
+                          </button>
+                          {shareOpen === c.id && (
+                            <div className="absolute right-0 mt-1 bg-[#0a0e17] border border-[#1e293b] rounded-lg shadow-lg z-50">
+                              <button
+                                onClick={() => handleShare(c, 'whatsapp')}
+                                className="block w-full text-left px-3 py-2 text-xs text-gray-300 hover:bg-white/5 whitespace-nowrap"
+                              >
+                                WhatsApp
+                              </button>
+                              <button
+                                onClick={() => handleShare(c, 'copy')}
+                                className="block w-full text-left px-3 py-2 text-xs text-gray-300 hover:bg-white/5 whitespace-nowrap border-t border-[#1e293b]"
+                              >
+                                Copiar
+                              </button>
+                            </div>
+                          )}
+                        </div>
                         <button
                           onClick={() => { setDeletingContract(c); setDeletePassword(''); setDeleteError(false); setDeleteOpen(true); }}
                           className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300"
