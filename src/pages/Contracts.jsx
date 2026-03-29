@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, FileText, Printer, Eye, Trash2 } from 'lucide-react';
+import { Search, FileText, Printer, Eye, Trash2, Download } from 'lucide-react';
+import { toast } from 'sonner';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
@@ -17,6 +18,7 @@ export default function Contracts() {
   const [deletingContract, setDeletingContract] = useState(null);
   const [deletePassword, setDeletePassword] = useState('');
   const [deleteError, setDeleteError] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   const { data: contracts = [], isLoading } = useQuery({
     queryKey: ['contracts'],
@@ -50,6 +52,27 @@ export default function Contracts() {
   });
 
   const fmt = (n) => new Intl.NumberFormat('es-DO', { style: 'currency', currency: 'DOP' }).format(n || 0);
+
+  const handleDownloadAll = async () => {
+    setDownloading(true);
+    try {
+      const response = await base44.functions.invoke('downloadContracts', {});
+      const blob = new Blob([response.data], { type: 'application/zip' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `contratos-${new Date().getTime()}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      toast.success('Contratos descargados');
+    } catch (err) {
+      toast.error('Error descargando contratos: ' + err.message);
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   const reprintContract = (contract) => {
     const loan = loans.find(l => l.id === contract.loan_id);
@@ -145,9 +168,19 @@ export default function Contracts() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-100">Contratos</h1>
-        <p className="text-sm text-gray-500 mt-1">{contracts.length} contratos guardados</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-100">Contratos</h1>
+          <p className="text-sm text-gray-500 mt-1">{contracts.length} contratos guardados</p>
+        </div>
+        <button
+          onClick={handleDownloadAll}
+          disabled={downloading || contracts.length === 0}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <Download className="w-4 h-4" />
+          {downloading ? 'Descargando...' : 'Descargar Todo'}
+        </button>
       </div>
 
       <div className="relative max-w-sm">
