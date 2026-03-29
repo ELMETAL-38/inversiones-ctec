@@ -234,9 +234,9 @@ export default function NewLoan() {
   });
 
   const [form, setForm] = useState({
-    client_id: '', amount: '', interest_rate: '', interest_type: 'monthly',
+    client_id: '', amount: '', interest_rate: '20', interest_type: 'biweekly',
     start_date: format(new Date(), 'yyyy-MM-dd'), num_installments: '',
-    late_interest: '5', grace_days: '3'
+    late_interest: '5', grace_days: '2'
   });
 
   const calc = useMemo(() => {
