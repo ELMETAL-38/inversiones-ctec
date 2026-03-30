@@ -235,7 +235,7 @@ export default function NewLoan() {
 
   const [form, setForm] = useState({
     client_id: '', amount: '', interest_rate: '20', interest_type: 'biweekly',
-    start_date: format(new Date(), 'yyyy-MM-dd'), num_installments: '',
+    start_date: format(new Date(), 'yyyy-MM-dd'), num_installments: '1',
     late_interest: '5', grace_days: '2'
   });
 
