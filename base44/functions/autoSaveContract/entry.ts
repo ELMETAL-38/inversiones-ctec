@@ -138,6 +138,21 @@ Deno.serve(async (req) => {
     const pdfFile = await saveContractPdf(authHeader, clientFolderId, baseName, html);
     console.log(`Contrato guardado automáticamente: ${baseName}.pdf — ID: ${pdfFile.id}`);
 
+    // Crear registro en la entidad Contract
+    await base44.asServiceRole.entities.Contract.create({
+      loan_id: loan.id,
+      client_id: loan.client_id,
+      client_name: loan.client_name,
+      loan_amount: loan.amount,
+      total_to_pay: loan.total_to_pay,
+      start_date: loan.start_date,
+      due_date: loan.due_date,
+      interest_rate: loan.interest_rate,
+      interest_type: loan.interest_type,
+      num_installments: loan.num_installments,
+      printed_at: new Date().toISOString().split('T')[0],
+    });
+
     return Response.json({ success: true, file_id: pdfFile.id, file_name: `${baseName}.pdf` });
   } catch (error) {
     console.error('Error:', error.message);
