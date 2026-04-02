@@ -431,6 +431,39 @@ export default function LoanDetail() {
             <DialogTitle>Registrar Pago</DialogTitle>
           </DialogHeader>
           <form onSubmit={handlePay} className="space-y-4">
+            {mora > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-red-400 mb-2">Mora por cuota</p>
+                <div className="max-h-36 overflow-y-auto rounded-lg border border-red-500/20">
+                  <table className="w-full text-xs">
+                    <thead className="sticky top-0 bg-[#0a0e17]">
+                      <tr className="text-gray-500 border-b border-[#1e293b]">
+                        <th className="text-left p-2">#</th>
+                        <th className="text-left p-2">Fecha</th>
+                        <th className="text-right p-2">Días</th>
+                        <th className="text-right p-2">Mora</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {installmentMoras.filter(s => s.mora > 0).map((s) => (
+                        <tr key={s.installment_number} className="border-b border-[#1e293b]/50">
+                          <td className="p-2 text-gray-400">{s.installment_number}</td>
+                          <td className="p-2 text-gray-300">{s.due_date}</td>
+                          <td className="p-2 text-right text-orange-400">{s.moraDays}d</td>
+                          <td className="p-2 text-right text-red-400 font-semibold">{fmt(s.mora)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr className="border-t border-red-500/30 bg-red-500/5">
+                        <td colSpan={3} className="p-2 text-red-400 font-semibold text-xs">Total Mora</td>
+                        <td className="p-2 text-right text-red-400 font-bold">{fmt(mora)}</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              </div>
+            )}
             <div>
               <label className="text-xs text-gray-500 mb-1.5 block">Monto a pagar *</label>
               <Input type="number" min="0.01" step="0.01" value={payAmount} onChange={e => setPayAmount(e.target.value)} required className="bg-[#0a0e17] border-[#1e293b] text-gray-200" placeholder="0.00" />
