@@ -464,10 +464,40 @@ export default function LoanDetail() {
                 </div>
               </div>
             )}
+            <div className="bg-[#0a0e17] rounded-lg border border-[#1e293b] overflow-hidden">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="bg-[#1e293b] text-gray-400">
+                    <th className="text-left p-2">Concepto</th>
+                    <th className="text-right p-2">Monto</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-[#1e293b]/50">
+                    <td className="p-2 text-blue-400">Capital (Saldo)</td>
+                    <td className="p-2 text-right text-blue-400 font-semibold">{fmt(loan.remaining_balance || 0)}</td>
+                  </tr>
+                  <tr className="border-b border-[#1e293b]/50">
+                    <td className="p-2 text-[#d4a533]">Rédito (Interés)</td>
+                    <td className="p-2 text-right text-[#d4a533] font-semibold">{fmt(loan.total_interest || 0)}</td>
+                  </tr>
+                  <tr className="border-b border-[#1e293b]/50">
+                    <td className="p-2 text-red-400">Mora Acumulada</td>
+                    <td className="p-2 text-right text-red-400 font-semibold">{fmt(mora)}</td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr className="bg-[#d4a533]/10 border-t border-[#d4a533]/30">
+                    <td className="p-2 text-white font-bold">TOTAL ADEUDADO</td>
+                    <td className="p-2 text-right text-white font-bold">{fmt((loan.remaining_balance || 0) + mora)}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
             <div>
               <label className="text-xs text-gray-500 mb-1.5 block">Monto a pagar *</label>
               <Input type="number" min="0.01" step="0.01" value={payAmount} onChange={e => setPayAmount(e.target.value)} required className="bg-[#0a0e17] border-[#1e293b] text-gray-200" placeholder="0.00" />
-              <p className="text-xs text-gray-600 mt-1">Saldo pendiente: {fmt(loan.remaining_balance)}</p>
+              <p className="text-xs text-gray-600 mt-1">Saldo pendiente: {fmt(loan.remaining_balance)}  |  Total con mora: {fmt((loan.remaining_balance || 0) + mora)}</p>
             </div>
             <div>
               <label className="text-xs text-gray-500 mb-1.5 block">Notas</label>
