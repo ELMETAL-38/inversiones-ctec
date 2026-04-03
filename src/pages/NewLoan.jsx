@@ -301,16 +301,17 @@ export default function NewLoan() {
       <form onSubmit={handleSubmit} className="bg-[#111827] rounded-xl border border-[#1e293b] p-6 space-y-5">
         <div>
           <label className="text-xs text-gray-500 mb-1.5 block">Cliente *</label>
-          <Select value={form.client_id || undefined} onValueChange={v => setForm(p => ({ ...p, client_id: v }))}>
-            <SelectTrigger className="bg-[#0a0e17] border-[#1e293b] text-gray-200">
-              <SelectValue placeholder="Seleccionar cliente" />
-            </SelectTrigger>
-            <SelectContent className="bg-[#1f2937] border-[#374151] text-gray-200">
-              {clients.map(c => (
-                <SelectItem key={c.id} value={c.id}>{c.first_name} {c.last_name} — {c.id_number}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <select
+            value={form.client_id}
+            onChange={e => setForm(p => ({ ...p, client_id: e.target.value }))}
+            required
+            className="w-full h-9 rounded-md border border-[#1e293b] bg-[#0a0e17] px-3 py-1 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-ring"
+          >
+            <option value="">Seleccionar cliente</option>
+            {clients.map(c => (
+              <option key={c.id} value={c.id}>{c.first_name} {c.last_name} — {c.id_number}</option>
+            ))}
+          </select>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -327,14 +328,13 @@ export default function NewLoan() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="text-xs text-gray-500 mb-1.5 block">Tipo de Interés *</label>
-            <Select value={form.interest_type} onValueChange={v => setForm(p => ({ ...p, interest_type: v }))}>
-              <SelectTrigger className="bg-[#0a0e17] border-[#1e293b] text-gray-200">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-[#1f2937] border-[#374151] text-gray-200">
-                {Object.entries(INTEREST_LABELS).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <select
+            value={form.interest_type}
+            onChange={e => setForm(p => ({ ...p, interest_type: e.target.value }))}
+            className="w-full h-9 rounded-md border border-[#1e293b] bg-[#0a0e17] px-3 py-1 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-ring"
+          >
+            {Object.entries(INTEREST_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          </select>
           </div>
           <div>
             <label className="text-xs text-gray-500 mb-1.5 block">Número de Cuotas *</label>
