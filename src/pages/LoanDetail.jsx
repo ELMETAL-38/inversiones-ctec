@@ -267,7 +267,7 @@ export default function LoanDetail() {
         <Button onClick={printContract} variant="outline" className="border-[#d4a533]/40 text-[#d4a533] hover:bg-[#d4a533]/10">
           <Printer className="w-4 h-4 mr-1" /> Contrato
         </Button>
-        <Button onClick={() => { setPayAmount(String(((loan.remaining_balance || 0) + mora).toFixed(2))); setPayDialogOpen(true); }} className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold">
+        <Button onClick={() => { setPayAmount(String(loan.installment_amount || '')); setPayDialogOpen(true); }} className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold">
           <DollarSign className="w-4 h-4 mr-1" /> Registrar Pago
         </Button>
       </div>
