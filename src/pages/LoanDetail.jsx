@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, DollarSign, Calendar, User, FileText, Download, Printer, Share2 } from 'lucide-react';
+import { ArrowLeft, DollarSign, Calendar, User, FileText, Download, Printer, Share2, ClipboardList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -191,6 +191,77 @@ export default function LoanDetail() {
     await shareAsImage(htmlContent, `recibo-${payment.payment_date}-${loan.client_name}.png`);
   };
 
+  const printEstadoCuenta = () => {
+    const fmtL = (n) => new Intl.NumberFormat('es-DO', { style: 'currency', currency: 'DOP' }).format(n || 0);
+    const today = new Date().toLocaleDateString('es-DO');
+    const paymentRows = payments.map((p, i) => `
+      <tr>
+        <td style="padding:6px 8px;border-bottom:1px solid #f0f0f0;text-align:center;">${i + 1}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #f0f0f0;text-align:center;">${p.payment_date}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #f0f0f0;text-align:right;">RD$ ${Number(p.amount).toFixed(2)}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #f0f0f0;text-align:right;">RD$ ${Number(p.remaining_balance || 0).toFixed(2)}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:11px;color:#666;">${p.notes || '—'}</td>
+      </tr>
+    `).join('');
+
+    const html = `<html><head><meta charset="UTF-8"><style>
+      * { margin:0; padding:0; box-sizing:border-box; }
+      body { font-family: Arial, sans-serif; color: #1a1a1a; padding: 30px; font-size: 13px; }
+      .hdr { display:flex; align-items:center; gap:16px; border-bottom:3px solid #d4a533; padding-bottom:16px; margin-bottom:20px; }
+      .logo { width:70px; height:70px; object-fit:contain; }
+      .ttl { text-align:center; font-size:16px; font-weight:bold; color:#333; background:#f9f5ec; padding:10px; border-radius:6px; margin-bottom:20px; border:1px solid #e8d89a; }
+      .grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:20px; }
+      .item { display:flex; justify-content:space-between; padding:6px 10px; background:#f9f9f9; border-radius:4px; }
+      .item span:first-child { color:#666; }
+      .item span:last-child { font-weight:600; }
+      .box { background:linear-gradient(135deg,#fffbf0,#fff8e6); border:2px solid #d4a533; border-radius:8px; padding:16px; margin-bottom:20px; display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:12px; text-align:center; }
+      .box-item p:first-child { color:#888; font-size:11px; margin-bottom:4px; }
+      .box-item p:last-child { font-size:15px; font-weight:bold; }
+      table { width:100%; border-collapse:collapse; font-size:12px; }
+      thead tr { background:#d4a533; color:#fff; }
+      thead th { padding:8px; text-align:center; }
+      .ftr { text-align:center; margin-top:24px; padding-top:14px; border-top:2px solid #d4a533; color:#888; font-size:11px; }
+      .mora-box { background:#fff0f0; border:1px solid #ef4444; border-radius:6px; padding:10px 14px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; }
+    </style></head><body>
+      <div class="hdr">
+        <img src="${LOGO_URL}" class="logo" />
+        <div><div style="color:#d4a533;font-size:22px;font-weight:bold;">INVERSIONES CTEC</div><div style="color:#555;font-size:11px;">Servicios Financieros · República Dominicana</div></div>
+        <div style="margin-left:auto;text-align:right;font-size:11px;color:#888;">Fecha: ${today}<br/>Estado de Cuenta</div>
+      </div>
+      <div class="ttl">📋 ESTADO DE CUENTA — PRÉSTAMO ACTIVO</div>
+      <div class="grid">
+        <div class="item"><span>Cliente:</span><span>${loan.client_name}</span></div>
+        <div class="item"><span>Cédula / ID:</span><span>${client?.id_number || '—'}</span></div>
+        <div class="item"><span>Teléfono:</span><span>${client?.phone || '—'}</span></div>
+        <div class="item"><span>Dirección:</span><span>${client?.address || '—'}</span></div>
+        <div class="item"><span>Fecha de Inicio:</span><span>${loan.start_date}</span></div>
+        <div class="item"><span>Fecha de Vencimiento:</span><span>${loan.due_date || '—'}</span></div>
+        <div class="item"><span>Tasa de Interés:</span><span>${loan.interest_rate}% ${TYPE_LABELS[loan.interest_type] || ''}</span></div>
+        <div class="item"><span>Número de Cuotas:</span><span>${loan.num_installments}</span></div>
+      </div>
+      <div class="box">
+        <div class="box-item"><p>Capital Original</p><p style="color:#3b82f6;">${fmtL(loan.amount)}</p></div>
+        <div class="box-item"><p>Total Pagado</p><p style="color:#10b981;">${fmtL(loan.total_paid)}</p></div>
+        <div class="box-item"><p>Saldo Pendiente</p><p style="color:#ef4444;">${fmtL(loan.remaining_balance)}</p></div>
+        <div class="box-item"><p>Mora Acumulada</p><p style="color:${mora > 0 ? '#ef4444' : '#888'};">${fmtL(mora)}</p></div>
+      </div>
+      ${mora > 0 ? `<div class="mora-box"><span style="color:#ef4444;font-weight:bold;">⚠ Total Adeudado (con mora):</span><span style="color:#ef4444;font-size:16px;font-weight:bold;">${fmtL((loan.remaining_balance || 0) + mora)}</span></div>` : ''}
+      <div style="font-size:12px;font-weight:bold;color:#d4a533;text-transform:uppercase;border-bottom:1px solid #e8d89a;padding-bottom:4px;margin-bottom:12px;">Historial de Pagos</div>
+      ${payments.length > 0 ? `
+      <table>
+        <thead><tr><th>#</th><th>Fecha</th><th>Monto Pagado</th><th>Saldo Restante</th><th>Notas</th></tr></thead>
+        <tbody>${paymentRows}</tbody>
+        <tfoot><tr style="background:#f9f5ec;"><td colspan="2" style="padding:8px;font-weight:bold;">Total Pagado</td><td style="padding:8px;text-align:right;font-weight:bold;color:#10b981;">${fmtL(loan.total_paid)}</td><td colspan="2"></td></tr></tfoot>
+      </table>` : '<p style="color:#888;text-align:center;padding:16px;">Sin pagos registrados</p>'}
+      <div class="ftr"><strong style="color:#d4a533;">INVERSIONES CTEC</strong> — Tel: 809-462-2360<br/>Documento generado el ${today}</div>
+    </body></html>`;
+
+    const win = window.open('', '_blank');
+    win.document.write(html);
+    win.document.close();
+    win.onload = () => win.print();
+  };
+
   const printContract = async () => {
     try {
       await base44.entities.Contract.create({
@@ -269,6 +340,9 @@ export default function LoanDetail() {
           <h1 className="text-2xl font-bold text-gray-100">{loan.client_name}</h1>
           <p className="text-sm text-gray-500 mt-0.5">Préstamo — {TYPE_LABELS[loan.interest_type]}</p>
         </div>
+        <Button onClick={printEstadoCuenta} variant="outline" className="border-purple-500/40 text-purple-400 hover:bg-purple-500/10">
+          <ClipboardList className="w-4 h-4 mr-1" /> Estado
+        </Button>
         <Button onClick={shareContract} variant="outline" className="border-blue-500/40 text-blue-400 hover:bg-blue-500/10">
           <Share2 className="w-4 h-4 mr-1" /> Compartir
         </Button>
