@@ -17,6 +17,7 @@ import Alerts from '@/pages/Alerts';
 import Caja from '@/pages/Caja';
 import Calculadora from '@/pages/Calculadora';
 import Contracts from '@/pages/Contracts';
+import ClientStatement from '@/pages/ClientStatement';
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
               <Route path="/Caja" element={<Caja />} />
               <Route path="/Calculadora" element={<Calculadora />} />
               <Route path="/Contracts" element={<Contracts />} />
+              <Route path="/ClientStatement" element={<ClientStatement />} />
             </Route>
             <Route path="*" element={<PageNotFound />} />
           </Routes>
