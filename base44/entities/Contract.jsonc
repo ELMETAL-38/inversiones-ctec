@@ -1,0 +1,55 @@
+{
+  "name": "Contract",
+  "type": "object",
+  "properties": {
+    "loan_id": {
+      "type": "string",
+      "description": "ID del pr\u00e9stamo"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "ID del cliente"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Nombre del cliente"
+    },
+    "loan_amount": {
+      "type": "number",
+      "description": "Monto del pr\u00e9stamo"
+    },
+    "total_to_pay": {
+      "type": "number",
+      "description": "Total a pagar"
+    },
+    "start_date": {
+      "type": "string",
+      "description": "Fecha de inicio del pr\u00e9stamo"
+    },
+    "due_date": {
+      "type": "string",
+      "description": "Fecha de vencimiento"
+    },
+    "interest_rate": {
+      "type": "number",
+      "description": "Tasa de inter\u00e9s"
+    },
+    "interest_type": {
+      "type": "string",
+      "description": "Tipo de inter\u00e9s"
+    },
+    "num_installments": {
+      "type": "number",
+      "description": "N\u00famero de cuotas"
+    },
+    "printed_at": {
+      "type": "string",
+      "description": "Fecha de impresi\u00f3n"
+    }
+  },
+  "required": [
+    "loan_id",
+    "client_id",
+    "client_name"
+  ]
+}

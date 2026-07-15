@@ -21,6 +21,7 @@ export default function LoanDetail() {
   const [payDialogOpen, setPayDialogOpen] = useState(false);
   const [payAmount, setPayAmount] = useState('');
   const [payNotes, setPayNotes] = useState('');
+  const [selectedInstallment, setSelectedInstallment] = useState(null);
 
   const { data: loan, isLoading } = useQuery({
     queryKey: ['loan', loanId],
@@ -43,9 +44,19 @@ export default function LoanDetail() {
   const payMutation = useMutation({
     mutationFn: async (payData) => {
       await base44.entities.Payment.create(payData);
+      // Marcar SOLO la cuota seleccionada como pagada en el calendario
+      const updatedSchedule = (loan.payment_schedule || []).map(s =>
+        s.installment_number === payData.installment_number
+          ? { ...s, status: 'paid' }
+          : s
+      );
       const newTotalPaid = (loan.total_paid || 0) + payData.amount;
       const newBalance = (loan.total_to_pay || 0) - newTotalPaid;
-      const updateData = { total_paid: newTotalPaid, remaining_balance: newBalance };
+      const updateData = {
+        total_paid: newTotalPaid,
+        remaining_balance: newBalance,
+        payment_schedule: updatedSchedule,
+      };
       if (newBalance <= 0) updateData.status = 'paid';
       await base44.entities.Loan.update(loanId, updateData);
     },
@@ -57,6 +68,7 @@ export default function LoanDetail() {
       setPayDialogOpen(false);
       setPayAmount('');
       setPayNotes('');
+      setSelectedInstallment(null);
       toast.success('Pago registrado');
     }
   });
@@ -64,7 +76,7 @@ export default function LoanDetail() {
   const handlePay = (e) => {
     e.preventDefault();
     const amount = parseFloat(payAmount);
-    if (!amount || amount <= 0) return;
+    if (!amount || amount <= 0 || !selectedInstallment) return;
     payMutation.mutate({
       loan_id: loanId,
       client_id: loan.client_id,
@@ -74,6 +86,7 @@ export default function LoanDetail() {
       payment_type: amount >= (loan.remaining_balance || 0) ? 'full' : 'partial',
       remaining_balance: Math.max(0, (loan.remaining_balance || 0) - amount),
       notes: payNotes,
+      installment_number: selectedInstallment,
     });
   };
 
@@ -321,7 +334,7 @@ export default function LoanDetail() {
 
   // Calcular mora POR CUOTA individual
   const installmentMoras = (loan.payment_schedule || []).map((s, i) => {
-    const isPaid = payments.length > i;
+    const isPaid = s.status === 'paid';
     if (isPaid || loan.status === 'paid' || !loan.late_interest) return { ...s, mora: 0, moraDays: 0 };
     const dueDate = new Date(s.due_date);
     const daysOverdue = Math.max(0, Math.floor((todayDate - dueDate) / (1000 * 60 * 60 * 24)));
@@ -331,6 +344,7 @@ export default function LoanDetail() {
   });
 
   const mora = installmentMoras.reduce((sum, s) => sum + s.mora, 0);
+  const pendingInstallments = installmentMoras.filter(s => s.status !== 'paid');
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -349,7 +363,17 @@ export default function LoanDetail() {
         <Button onClick={printContract} variant="outline" className="border-[#d4a533]/40 text-[#d4a533] hover:bg-[#d4a533]/10">
           <Printer className="w-4 h-4 mr-1" /> Contrato
         </Button>
-        <Button onClick={() => { setPayAmount(String(loan.installment_amount || '')); setPayDialogOpen(true); }} className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold">
+        <Button onClick={() => {
+          const firstPending = installmentMoras.find(s => s.status !== 'paid');
+          if (firstPending) {
+            setSelectedInstallment(firstPending.installment_number);
+            setPayAmount(String((Number(firstPending.amount) || 0) + (Number(firstPending.mora) || 0)));
+          } else {
+            setSelectedInstallment(null);
+            setPayAmount('');
+          }
+          setPayDialogOpen(true);
+        }} className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold">
           <DollarSign className="w-4 h-4 mr-1" /> Registrar Pago
         </Button>
       </div>
@@ -444,7 +468,7 @@ export default function LoanDetail() {
               </thead>
               <tbody>
                 {installmentMoras.map((s, i) => {
-                  const isPaid = payments.length > i;
+                  const isPaid = s.status === 'paid';
                   const isLate = !isPaid && s.due_date < today;
                   return (
                     <tr key={i} className="border-b border-[#1e293b]/50">
@@ -513,6 +537,47 @@ export default function LoanDetail() {
             <DialogTitle>Registrar Pago</DialogTitle>
           </DialogHeader>
           <form onSubmit={handlePay} className="space-y-4">
+            <div>
+              <p className="text-xs font-semibold text-[#d4a533] mb-2">Cuota a cobrar *</p>
+              <div className="space-y-1.5 max-h-44 overflow-y-auto rounded-lg border border-[#1e293b] p-1.5">
+                {pendingInstallments.length === 0 ? (
+                  <p className="text-center text-gray-600 text-xs py-4">No hay cuotas pendientes</p>
+                ) : (
+                  pendingInstallments.map(s => (
+                    <label
+                      key={s.installment_number}
+                      className={`flex items-start gap-2 p-2 rounded-lg border cursor-pointer transition-colors ${
+                        selectedInstallment === s.installment_number
+                          ? 'bg-emerald-500/10 border-emerald-500/50'
+                          : 'bg-[#0a0e17] border-[#1e293b] hover:border-[#d4a533]/40'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="installment"
+                        value={s.installment_number}
+                        checked={selectedInstallment === s.installment_number}
+                        onChange={() => {
+                          setSelectedInstallment(s.installment_number);
+                          setPayAmount(String((Number(s.amount) || 0) + (Number(s.mora) || 0)));
+                        }}
+                        className="mt-0.5 accent-emerald-500"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs font-medium text-gray-200">
+                          Cuota #{s.installment_number} — vence {s.due_date}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-0.5 flex flex-wrap gap-x-2">
+                          <span>Base: <span className="text-gray-300">{fmt(s.amount)}</span></span>
+                          {s.mora > 0 && <span>Mora: <span className="text-red-400">{fmt(s.mora)} ({s.moraDays}d)</span></span>}
+                          <span className="text-emerald-400 font-semibold">Total: {fmt((Number(s.amount) || 0) + (Number(s.mora) || 0))}</span>
+                        </div>
+                      </div>
+                    </label>
+                  ))
+                )}
+              </div>
+            </div>
             {mora > 0 && (
               <div>
                 <p className="text-xs font-semibold text-red-400 mb-2">Mora por cuota</p>
@@ -587,7 +652,7 @@ export default function LoanDetail() {
             </div>
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => setPayDialogOpen(false)} className="border-[#1e293b] text-gray-400">Cancelar</Button>
-              <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white" disabled={payMutation.isPending}>Registrar</Button>
+              <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white" disabled={payMutation.isPending || !selectedInstallment}>Registrar</Button>
             </div>
           </form>
         </DialogContent>

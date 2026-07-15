@@ -1,0 +1,32 @@
+{
+  "name": "Capital",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "entrada",
+        "salida"
+      ],
+      "description": "Tipo de movimiento"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Monto del movimiento"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descripci\u00f3n del movimiento"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha del movimiento"
+    }
+  },
+  "required": [
+    "type",
+    "amount",
+    "date"
+  ]
+}

@@ -1,0 +1,114 @@
+{
+  "name": "Loan",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "ID del cliente"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Nombre completo del cliente"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Monto del pr\u00e9stamo"
+    },
+    "interest_rate": {
+      "type": "number",
+      "description": "Tasa de inter\u00e9s en porcentaje"
+    },
+    "interest_type": {
+      "type": "string",
+      "enum": [
+        "daily",
+        "weekly",
+        "biweekly",
+        "monthly"
+      ],
+      "description": "Tipo de inter\u00e9s"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha de inicio"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha de vencimiento"
+    },
+    "num_installments": {
+      "type": "number",
+      "description": "N\u00famero de cuotas"
+    },
+    "late_interest": {
+      "type": "number",
+      "description": "Inter\u00e9s por mora en porcentaje"
+    },
+    "grace_days": {
+      "type": "number",
+      "description": "D\u00edas de gracia"
+    },
+    "total_interest": {
+      "type": "number",
+      "description": "Inter\u00e9s total calculado"
+    },
+    "total_to_pay": {
+      "type": "number",
+      "description": "Total a pagar"
+    },
+    "installment_amount": {
+      "type": "number",
+      "description": "Valor de cada cuota"
+    },
+    "total_paid": {
+      "type": "number",
+      "description": "Total pagado hasta ahora",
+      "default": 0
+    },
+    "remaining_balance": {
+      "type": "number",
+      "description": "Saldo restante"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "paid",
+        "overdue",
+        "defaulted"
+      ],
+      "default": "active"
+    },
+    "payment_schedule": {
+      "type": "array",
+      "description": "Calendario de pagos",
+      "items": {
+        "type": "object",
+        "properties": {
+          "installment_number": {
+            "type": "number"
+          },
+          "due_date": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "client_id",
+    "amount",
+    "interest_rate",
+    "interest_type",
+    "start_date",
+    "num_installments"
+  ]
+}

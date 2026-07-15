@@ -1,0 +1,53 @@
+{
+  "name": "Payment",
+  "type": "object",
+  "properties": {
+    "loan_id": {
+      "type": "string",
+      "description": "ID del pr\u00e9stamo"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "ID del cliente"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Nombre del cliente"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Monto pagado"
+    },
+    "payment_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha del pago"
+    },
+    "installment_number": {
+      "type": "number",
+      "description": "N\u00famero de cuota"
+    },
+    "payment_type": {
+      "type": "string",
+      "enum": [
+        "full",
+        "partial"
+      ],
+      "description": "Tipo de pago"
+    },
+    "remaining_balance": {
+      "type": "number",
+      "description": "Saldo restante despu\u00e9s del pago"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notas del pago"
+    }
+  },
+  "required": [
+    "loan_id",
+    "client_id",
+    "amount",
+    "payment_date"
+  ]
+}
