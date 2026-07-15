@@ -532,7 +532,7 @@ export default function LoanDetail() {
 
       {/* Payment Dialog */}
       <Dialog open={payDialogOpen} onOpenChange={setPayDialogOpen}>
-        <DialogContent className="bg-[#111827] border-[#1e293b] text-gray-200 max-w-sm">
+        <DialogContent className="bg-[#111827] border-[#1e293b] text-gray-200 max-w-sm max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Registrar Pago</DialogTitle>
           </DialogHeader>
