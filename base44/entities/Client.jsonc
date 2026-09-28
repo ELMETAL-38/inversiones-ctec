@@ -37,10 +37,6 @@
         "inactive"
       ],
       "default": "active"
-    },
-    "drive_folder_id": {
-      "type": "string",
-      "description": "ID de la carpeta en Google Drive"
     }
   },
   "required": [

@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { HandCoins, DollarSign, TrendingUp, AlertTriangle, Users, Clock, FolderUp } from 'lucide-react';
+import { HandCoins, DollarSign, TrendingUp, AlertTriangle, Users, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import StatCard from '@/components/dashboard/StatCard';
 import { format, isAfter, parseISO } from 'date-fns';
@@ -14,31 +13,6 @@ const COLORS = ['#d4a533', '#10b981', '#3b82f6', '#ef4444'];
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [generating, setGenerating] = useState(false);
-  const [drivePasswordOpen, setDrivePasswordOpen] = useState(false);
-  const [drivePassword, setDrivePassword] = useState('');
-  const [drivePasswordError, setDrivePasswordError] = useState(false);
-
-  const handleGenerateAllContracts = async () => {
-    setGenerating(true);
-    try {
-      const res = await base44.functions.invoke('generateAllContracts', {});
-      toast.success(`¡Listo! ${res.data.success} contrato(s) subido(s) a Drive. ${res.data.failed > 0 ? `${res.data.failed} fallaron.` : ''}`);
-    } catch (err) {
-      toast.error('Error al generar contratos: ' + err.message);
-    } finally {
-      setGenerating(false);
-    }
-  };
-
-  const handleDrivePasswordSubmit = (e) => {
-    e.preventDefault();
-    if (drivePassword !== '3030') { setDrivePasswordError(true); return; }
-    setDrivePasswordOpen(false);
-    setDrivePassword('');
-    setDrivePasswordError(false);
-    handleGenerateAllContracts();
-  };
   const { data: loans = [], isLoading: loansLoading } = useQuery({
     queryKey: ['loans'],
     queryFn: () => base44.entities.Loan.list('-created_date', 200),
@@ -123,42 +97,7 @@ export default function Dashboard() {
           <h1 className="text-2xl font-bold text-gray-100">Dashboard</h1>
           <p className="text-sm text-gray-500 mt-1">Resumen general de Inversiones CTEC</p>
         </div>
-        <Button
-          onClick={() => { setDrivePassword(''); setDrivePasswordError(false); setDrivePasswordOpen(true); }}
-          disabled={generating}
-          className="bg-[#d4a533] hover:bg-[#b8922d] text-black font-semibold text-xs"
-        >
-          <FolderUp className="w-4 h-4 mr-1" />
-          {generating ? 'Subiendo a Drive...' : 'Subir contratos a Drive'}
-        </Button>
       </div>
-
-      {/* Drive Password Dialog */}
-      {drivePasswordOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
-          <div className="bg-[#111827] border border-[#1e293b] rounded-xl p-6 w-80 shadow-xl">
-            <h3 className="text-base font-semibold text-gray-200 mb-1">Verificar acceso</h3>
-            <p className="text-xs text-gray-500 mb-4">Ingresa la contraseña para subir contratos a Drive.</p>
-            <form onSubmit={handleDrivePasswordSubmit}>
-              <input
-                type="password"
-                value={drivePassword}
-                onChange={e => { setDrivePassword(e.target.value); setDrivePasswordError(false); }}
-                placeholder="Contraseña"
-                autoFocus
-                className={`w-full px-3 py-2 rounded-lg bg-[#0a0e17] border text-gray-200 text-sm outline-none focus:ring-2 transition-all mb-1 ${
-                  drivePasswordError ? 'border-red-500 focus:ring-red-500/30' : 'border-[#1e293b] focus:ring-[#d4a533]/30'
-                }`}
-              />
-              {drivePasswordError && <p className="text-red-400 text-xs mb-3">Contraseña incorrecta</p>}
-              <div className="flex gap-2 mt-3">
-                <button type="button" onClick={() => setDrivePasswordOpen(false)} className="flex-1 px-3 py-2 rounded-lg border border-[#1e293b] text-gray-400 text-sm hover:bg-white/5">Cancelar</button>
-                <button type="submit" className="flex-1 px-3 py-2 rounded-lg bg-[#d4a533] hover:bg-[#b8922d] text-black font-semibold text-sm">Confirmar</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

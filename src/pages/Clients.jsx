@@ -40,15 +40,7 @@ export default function Clients() {
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data) => {
-      const client = await base44.entities.Client.create(data);
-      // Crear carpeta en Drive
-      base44.functions.invoke('createClientDriveFolder', {
-        client_id: client.id,
-        client_name: `${data.first_name} ${data.last_name}`,
-      }).catch(() => {});
-      return client;
-    },
+    mutationFn: (data) => base44.entities.Client.create(data),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['clients'] }); setDialogOpen(false); toast.success('Cliente creado'); },
   });
   const updateMutation = useMutation({
